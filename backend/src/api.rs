@@ -1,5 +1,3 @@
-use crate::run_code::RunCodeService;
-
 use super::handlers;
 use super::response;
 use super::response::AppError;
@@ -51,6 +49,13 @@ pub fn api(
             config.clone(),
             db.clone(),
             auth_service.clone(),
+            warp::path!("public" / "tournament_data" / "increment_year"),
+            handlers::tournament_data_increment_year,
+        ),
+        adapter(
+            config.clone(),
+            db.clone(),
+            auth_service.clone(),
             warp::path!("public" / "tournament_membership" / "new"),
             handlers::tournament_membership_new,
         ),
@@ -81,7 +86,7 @@ pub fn api(
             auth_service.clone(),
             warp::path!("public" / "tournament_submission" / "view"),
             handlers::tournament_submission_view,
-        ),
+        )
     )
     .recover(handle_rejection)
 }
@@ -103,7 +108,7 @@ fn adapter<PropsType, ResponseType, F>(
     db: Db,
     auth_service: AuthService,
     filter: impl Filter<Extract = (), Error = warp::Rejection> + Clone,
-    handler: fn(Config, Db, AuthService, RunCodeService, PropsType) -> F,
+    handler: fn(Config, Db, AuthService, PropsType) -> F,
 ) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone
 where
     F: Future<Output = Result<ResponseType, AppError>> + Send,
@@ -119,7 +124,6 @@ where
         .and(with(config))
         .and(with(db))
         .and(with(auth_service))
-        .and(with(run_code_service))
         .and(warp::body::json())
         .and_then(move |config, db, auth_service, props| async move {
             handler(config, db, auth_service, props)

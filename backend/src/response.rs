@@ -6,10 +6,12 @@ use strum::AsRefStr;
 pub enum AppError {
     NoCapability,
     TournamentNonexistent,
-    TournamentSubmissionNotValidated,
+    TournamentMaxYearsInvalid,
     TournamentSubmissionTestcaseIncomplete,
     TournamentSubmissionTestcaseFails,
     TournamentArchived,
+    TournamentMembershipInvalid,
+TournamentMaxYearsAchieved,
     DecodeError,
     InternalServerError,
     MethodNotAllowed,
@@ -45,14 +47,14 @@ pub struct TournamentData {
     pub creator_user_id: i64,
     pub tournament: Tournament,
     pub title: String,
-    pub description: String,
+    pub current_year: i64,
     pub active: bool,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TournamentMembership {
-    pub tournament_submission_id: i64,
+    pub tournament_membership_id: i64,
     pub creation_time: i64,
     pub creator_user_id: i64,
     pub tournament: Tournament,

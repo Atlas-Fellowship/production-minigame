@@ -15,11 +15,10 @@ mod request;
 mod response;
 
 // db web stuff
-mod match_resolution_service;
-mod submission_service;
 mod tournament_data_service;
 mod tournament_service;
 mod tournament_submission_service;
+mod tournament_membership_service;
 
 mod api;
 mod db_types;

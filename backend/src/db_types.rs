@@ -13,7 +13,7 @@ pub struct TournamentData {
     pub creator_user_id: i64,
     pub tournament_id: i64,
     pub title: String,
-    pub description: String,
+    pub current_year: i64,
     pub active: bool,
 }
 

@@ -24,8 +24,8 @@ create table tournament_data(
   tournament_id bigint not null references tournament(tournament_id),
   -- tournament title
   title text not null,
-  -- tournament description
-  description text  not null,
+  -- current year
+  current_year bigint not null,
   -- is the tournament still visible
   active bool not null
 );

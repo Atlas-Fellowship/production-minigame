@@ -11,7 +11,7 @@ impl From<tokio_postgres::row::Row> for TournamentData {
             creator_user_id: row.get("creator_user_id"),
             tournament_id: row.get("tournament_id"),
             title: row.get("title"),
-            description: row.get("description"),
+            current_year: row.get("current_year"),
             active: row.get("active"),
         }
     }
@@ -22,7 +22,7 @@ pub async fn add(
     creator_user_id: i64,
     tournament_id: i64,
     title: String,
-    description: String,
+    current_year: i64,
     active: bool,
 ) -> Result<TournamentData, tokio_postgres::Error> {
     let row = con
@@ -32,7 +32,7 @@ pub async fn add(
            creator_user_id,
            tournament_id,
            title,
-           description,
+           current_year,
            active
        )
        VALUES ($1, $2, $3, $4, $5)
@@ -42,7 +42,7 @@ pub async fn add(
                 &creator_user_id,
                 &tournament_id,
                 &title,
-                &description,
+                &current_year,
                 &active,
             ],
         )
@@ -55,7 +55,7 @@ pub async fn add(
         creator_user_id,
         tournament_id,
         title,
-        description,
+        current_year,
         active,
     })
 }
@@ -98,8 +98,7 @@ pub async fn query(
         " AND ($3::bigint    IS NULL OR td.creation_time <= $3)",
         " AND ($4::bigint[]  IS NULL OR td.creator_user_id = ANY($4))",
         " AND ($5::bigint[]  IS NULL OR td.tournament_id = ANY($5))",
-        " AND ($6::text[]    IS NULL OR td.title = ANY($6))",
-        " AND ($7::bool      IS NULL OR td.active = $7)",
+        " AND ($6::bool      IS NULL OR td.active = $6)",
         " ORDER BY td.tournament_data_id",
     ]
     .join("\n");
@@ -115,7 +114,6 @@ pub async fn query(
                 &props.max_creation_time,
                 &props.creator_user_id,
                 &props.tournament_id,
-                &props.title,
                 &props.active,
             ],
         )

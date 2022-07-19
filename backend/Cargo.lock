@@ -791,24 +791,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pdarena-service"
-version = "0.1.0"
-dependencies = [
- "auth-service-api",
- "base64",
- "clap",
- "rand",
- "reqwest",
- "serde",
- "serde_json",
- "strum",
- "tar",
- "tokio",
- "tokio-postgres",
- "warp",
-]
-
-[[package]]
 name = "percent-encoding"
 version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -936,6 +918,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dd96a1e8ed2596c337f8eae5f24924ec83f5ad5ab21ea8e455d3566c69fbcaf7"
 dependencies = [
  "unicode-ident",
+]
+
+[[package]]
+name = "production-minigame-service"
+version = "0.1.0"
+dependencies = [
+ "auth-service-api",
+ "base64",
+ "clap",
+ "rand",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "strum",
+ "tar",
+ "tokio",
+ "tokio-postgres",
+ "warp",
 ]
 
 [[package]]
