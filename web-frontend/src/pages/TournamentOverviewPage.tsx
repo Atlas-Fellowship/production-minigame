@@ -11,15 +11,14 @@ import { unwrap, getFirstOr } from '@innexgo/frontend-common';
 import format from "date-fns/format";
 
 import { Async, AsyncProps } from 'react-async';
-import { MatchResolution, matchResolutionView, Submission, submissionView, TournamentData, tournamentDataView, TournamentSubmission, tournamentSubmissionView } from '../utils/api';
+import { TournamentData, tournamentDataView, TournamentSubmission, tournamentSubmissionView } from '../utils/api';
 import { ApiKey } from '@innexgo/frontend-auth-api';
 import { AuthenticatedComponentProps } from '@innexgo/auth-react-components';
-import ManageTournamentSubmissionsTournament from '../components/ManageTournamentSubmissionTournament';
+import ManageTournamentSubmissionOverview from '../components/ManageTournamentSubmissionOverview';
 
 type ManageTournamentPageData = {
   tournamentData: TournamentData,
   tournamentSubmissions: TournamentSubmission[],
-  matches: MatchResolution[],
 }
 
 const loadManageTournamentPage = async (props: AsyncProps<ManageTournamentPageData>): Promise<ManageTournamentPageData> => {
@@ -34,31 +33,13 @@ const loadManageTournamentPage = async (props: AsyncProps<ManageTournamentPageDa
 
   const tournamentSubmissions = await tournamentSubmissionView({
     tournamentId: [props.tournamentId],
-    onlyRecent: true,
     apiKey: props.apiKey.key
   })
     .then(unwrap);
-
-
-  const submissionIds = tournamentSubmissions.map(x => x.submissionId);
-
-  const matchesAsSubmission = await matchResolutionView({
-    submissionId: submissionIds,
-    apiKey: props.apiKey.key
-  })
-    .then(unwrap);
-
-  const matchesAsOpponent = await matchResolutionView({
-    opponentSubmissionId: submissionIds,
-    apiKey: props.apiKey.key
-  })
-    .then(unwrap);
-
 
   return {
     tournamentData,
     tournamentSubmissions,
-    matches: [...matchesAsSubmission, ...matchesAsOpponent]
   };
 }
 
@@ -82,12 +63,10 @@ function ManageTournamentPage(props: AuthenticatedComponentProps) {
                   />
                 </div>
               </Section>
-              <Section name="Leaderboard" id="leaderboard">
-                <ManageTournamentSubmissionsTournament
+              <Section name="Overview" id="overview">
+                <ManageTournamentSubmissionOverview
                   tournamentSubmissions={data.tournamentSubmissions}
-                  setTournamentSubmissions={tournamentSubmissions => setData(update(data, { tournamentSubmissions: { $set: tournamentSubmissions } }))}
                   apiKey={props.apiKey}
-                  matches={data.matches}
                   showInactive={false}
                   mutable={true}
                 />

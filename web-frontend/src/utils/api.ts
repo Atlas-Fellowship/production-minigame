@@ -79,7 +79,7 @@ export type SubmissionNewProps = {
 }
 
 export function submissionNew(props: SubmissionNewProps, server?: string): Promise<Result<Submission, AppErrorCode>> {
-  return fetchApiOrNetworkError(undefToStr(server) + "/pdarena/submission/new", props);
+  return fetchApiOrNetworkError(undefToStr(server) + "/production_minigame/submission/new", props);
 }
 
 
@@ -90,7 +90,7 @@ export type TournamentNewProps = {
 }
 
 export function tournamentNew(props: TournamentNewProps, server?: string): Promise<Result<TournamentData, AppErrorCode>> {
-  return fetchApiOrNetworkError(undefToStr(server) + "/pdarena/tournament/new", props);
+  return fetchApiOrNetworkError(undefToStr(server) + "/production_minigame/tournament/new", props);
 }
 
 export type TournamentDataNewProps = {
@@ -101,7 +101,7 @@ export type TournamentDataNewProps = {
 }
 
 export function tournamentDataNew(props: TournamentDataNewProps, server?: string): Promise<Result<TournamentData, AppErrorCode>> {
-  return fetchApiOrNetworkError(undefToStr(server) + "/pdarena/tournament_data/new", props);
+  return fetchApiOrNetworkError(undefToStr(server) + "/production_minigame/tournament_data/new", props);
 }
 
 export type TournamentDataIncrementYearProps = {
@@ -110,7 +110,7 @@ export type TournamentDataIncrementYearProps = {
 }
 
 export function tournamentDataIncrementYear(props: TournamentDataNewProps, server?: string): Promise<Result<TournamentData, AppErrorCode>> {
-  return fetchApiOrNetworkError(undefToStr(server) + "/pdarena/tournament_data/increment_year", props);
+  return fetchApiOrNetworkError(undefToStr(server) + "/production_minigame/tournament_data/increment_year", props);
 }
 
 export type TournamentMembershipNewProps = {
@@ -119,7 +119,7 @@ export type TournamentMembershipNewProps = {
 }
 
 export function tournamentMembershipNew(props: TournamentMembershipNewProps, server?: string): Promise<Result<TournamentMembership, AppErrorCode>> {
-  return fetchApiOrNetworkError(undefToStr(server) + "/pdarena/tournament_membership/new", props);
+  return fetchApiOrNetworkError(undefToStr(server) + "/production_minigame/tournament_membership/new", props);
 }
 
 export type TournamentSubmissionNewProps = {
@@ -129,7 +129,7 @@ export type TournamentSubmissionNewProps = {
 }
 
 export function tournamentSubmissionNew(props: TournamentSubmissionNewProps, server?: string): Promise<Result<TournamentSubmission, AppErrorCode>> {
-  return fetchApiOrNetworkError(undefToStr(server) + "/pdarena/tournament_submission/new", props);
+  return fetchApiOrNetworkError(undefToStr(server) + "/production_minigame/tournament_submission/new", props);
 }
 
 
@@ -145,7 +145,7 @@ export type TournamentDataViewProps = {
 }
 
 export function tournamentDataView(props: TournamentDataViewProps, server?: string): Promise<Result<TournamentData[], AppErrorCode>> {
-  return fetchApiOrNetworkError(undefToStr(server) + "/pdarena/tournament_data/view", props);
+  return fetchApiOrNetworkError(undefToStr(server) + "/production_minigame/tournament_data/view", props);
 }
 
 export type TournamentMembershipViewProps = {
@@ -160,7 +160,7 @@ export type TournamentMembershipViewProps = {
 }
 
 export function tournamentMembershipView(props: TournamentMembershipViewProps, server?: string): Promise<Result<TournamentMembership[], AppErrorCode>> {
-  return fetchApiOrNetworkError(undefToStr(server) + "/pdarena/tournament_membership/view", props);
+  return fetchApiOrNetworkError(undefToStr(server) + "/production_minigame/tournament_membership/view", props);
 }
 
 
@@ -174,6 +174,6 @@ export type TournamentSubmissionViewProps = {
 }
 
 export function tournamentSubmissionView(props: TournamentSubmissionViewProps, server?: string): Promise<Result<TournamentSubmission[], AppErrorCode>> {
-  return fetchApiOrNetworkError(undefToStr(server) + "/pdarena/tournament_submission/view", props);
+  return fetchApiOrNetworkError(undefToStr(server) + "/production_minigame/tournament_submission/view", props);
 }
 

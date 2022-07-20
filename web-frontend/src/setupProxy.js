@@ -12,12 +12,12 @@ module.exports = function(app) {
     })
   );
   app.use(
-    '/api/pdarena',
+    '/api/production_minigame',
     createProxyMiddleware({
       target: 'http://127.0.0.1:8080',
       changeOrigin: true,
       pathRewrite: {
-        '^/api/pdarena': '/public', // rewrite path
+        '^/api/production_minigame': '/public', // rewrite path
       },
     })
   );

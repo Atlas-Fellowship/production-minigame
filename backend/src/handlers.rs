@@ -144,14 +144,14 @@ pub async fn tournament_new(
 
     let con = &mut *db.lock().await;
 
-    if props.max_year <= 1 {
+    if props.max_years <= 1 {
         return Err(response::AppError::TournamentMaxYearsInvalid);
     }
 
     let mut sp = con.transaction().await.map_err(report_postgres_err)?;
 
     // create tournament
-    let tournament = tournament_service::add(&mut sp, user.user_id, props.max_year)
+    let tournament = tournament_service::add(&mut sp, user.user_id, props.max_years)
         .await
         .map_err(report_postgres_err)?;
 
@@ -260,6 +260,8 @@ pub async fn tournament_data_increment_year(
     if tournament_data.current_year >= tournament.max_years {
         return Err(response::AppError::TournamentMaxYearsAchieved);
     }
+
+    // TODO: add other tournament submissions if they're not created yet
 
     // create tournament data
     let tournament_data = tournament_data_service::add(

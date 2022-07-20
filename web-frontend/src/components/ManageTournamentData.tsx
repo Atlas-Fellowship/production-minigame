@@ -22,7 +22,6 @@ function EditTournamentData(props: EditTournamentDataProps) {
 
   type EditTournamentDataValue = {
     title: string,
-    description: string,
   }
 
   const onSubmit = async (values: EditTournamentDataValue,
@@ -32,7 +31,6 @@ function EditTournamentData(props: EditTournamentDataProps) {
       tournamentId: props.tournamentData.tournament.tournamentId,
       apiKey: props.apiKey.key,
       title: values.title,
-      description: values.description,
       active: props.tournamentData.active,
     });
 
@@ -70,7 +68,6 @@ function EditTournamentData(props: EditTournamentDataProps) {
       onSubmit={onSubmit}
       initialValues={{
         title: props.tournamentData.title,
-        description: props.tournamentData.description
       }}
       initialStatus={{
         failureResult: "",
@@ -94,18 +91,6 @@ function EditTournamentData(props: EditTournamentDataProps) {
                 isInvalid={!!fprops.errors.title}
               />
               <Form.Control.Feedback type="invalid">{fprops.errors.title}</Form.Control.Feedback>
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label >Tournament Description</Form.Label>
-              <Form.Control
-                name="description"
-                type="text"
-                placeholder="Tournament Description"
-                value={fprops.values.description}
-                onChange={e => fprops.setFieldValue("description", e.target.value)}
-                isInvalid={!!fprops.errors.description}
-              />
-              <Form.Control.Feedback type="invalid">{fprops.errors.description}</Form.Control.Feedback>
             </Form.Group>
             <Form.Group className="mb-3">
               <Button type="submit">Submit</Button>
@@ -137,7 +122,6 @@ function ArchiveTournament(props: ArchiveTournamentProps) {
       tournamentId: props.tournamentData.tournament.tournamentId,
       apiKey: props.apiKey.key,
       title: props.tournamentData.title,
-      description: props.tournamentData.description,
       active: !props.tournamentData.active,
     });
 
@@ -217,10 +201,6 @@ const ManageTournamentData = (props: {
         <tr>
           <th>Title</th>
           <td>{props.tournamentData.title}</td>
-        </tr>
-        <tr>
-          <th>Description</th>
-          <td>{props.tournamentData.description}</td>
         </tr>
         <tr>
           <th>Creator</th>

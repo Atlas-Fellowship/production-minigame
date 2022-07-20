@@ -11,7 +11,7 @@ pub enum AppError {
     TournamentSubmissionTestcaseFails,
     TournamentArchived,
     TournamentMembershipInvalid,
-TournamentMaxYearsAchieved,
+    TournamentMaxYearsAchieved,
     DecodeError,
     InternalServerError,
     MethodNotAllowed,
