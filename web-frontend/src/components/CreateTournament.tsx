@@ -1,5 +1,5 @@
 import React from "react"
-import { Formik, FormikHelpers, FormikErrors } from 'formik'
+import { Formik, FormikHelpers, FormikErrors, isNaN } from 'formik'
 import { Button, Form } from "react-bootstrap";
 import { TournamentData, tournamentNew } from "../utils/api";
 import { isErr } from '@innexgo/frontend-common';
@@ -16,7 +16,7 @@ function CreateTournament(props: CreateTournamentProps) {
 
   type CreateTournamentValue = {
     title: string,
-    description: string,
+    maxYears: number,
   }
 
   const onSubmit = async (values: CreateTournamentValue,
@@ -28,11 +28,12 @@ function CreateTournament(props: CreateTournamentProps) {
 
     let hasError = false;
     if (values.title === "") {
-      errors.title = "Please enter your tourtitlent title";
+      errors.title = "Please enter your title";
       hasError = true;
     }
-    if (values.description === "") {
-      errors.description = "Please enter a description";
+
+    if (isNaN(values.maxYears)) {
+      errors.maxYears= "Please enter the number of years the competition should continue.";
       hasError = true;
     }
 
@@ -43,7 +44,7 @@ function CreateTournament(props: CreateTournamentProps) {
 
     const maybeTournament = await tournamentNew({
       title: values.title,
-      description: values.description,
+      maxYears: values.maxYears,
       apiKey: props.apiKey.key,
     });
 
@@ -52,6 +53,13 @@ function CreateTournament(props: CreateTournamentProps) {
         case "UNAUTHORIZED": {
           fprops.setStatus({
             failureResult: "Not authorized to create tournament",
+            successResult: ""
+          });
+          break;
+        }
+        case "TOURNAMENT_MAX_YEARS_INVALID": {
+          fprops.setStatus({
+            failureResult: "Please enter more than 1 year.",
             successResult: ""
           });
           break;
@@ -80,7 +88,7 @@ function CreateTournament(props: CreateTournamentProps) {
       onSubmit={onSubmit}
       initialValues={{
         title: "",
-        description: "",
+        maxYears: 10,
       }}
       initialStatus={{
         failureResult: "",
@@ -106,17 +114,15 @@ function CreateTournament(props: CreateTournamentProps) {
               <Form.Control.Feedback type="invalid">{fprops.errors.title}</Form.Control.Feedback>
             </Form.Group>
             <Form.Group className="mb-3">
-              <Form.Label>Description</Form.Label>
+              <Form.Label>Number of Years</Form.Label>
               <Form.Control
-                name="description"
-                type="text"
-                placeholder="Description"
-                as="input"
-                value={fprops.values.description}
-                onChange={e => fprops.setFieldValue("description", e.target.value)}
-                isInvalid={!!fprops.errors.description}
+                type="number"
+                onChange={fprops.handleChange}
+                value={fprops.values.maxYears}
+                name="maxYears"
+                isInvalid={!!fprops.errors.maxYears}
               />
-              <Form.Control.Feedback type="invalid">{fprops.errors.description}</Form.Control.Feedback>
+              <Form.Control.Feedback type="invalid">{fprops.errors.maxYears}</Form.Control.Feedback>
             </Form.Group>
             <Form.Group className="mb-3">
               <Button type="submit">Submit Form</Button>

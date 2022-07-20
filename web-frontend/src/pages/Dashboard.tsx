@@ -10,19 +10,31 @@ import format from 'date-fns/format';
 import formatDistance from 'date-fns/formatDistance';
 import AuthenticatedComponentProps from '@innexgo/auth-react-components/lib/components/AuthenticatedComponentProps';
 
-import { TournamentData, tournamentDataView } from '../utils/api';
+import { TournamentData, tournamentDataView, TournamentMembership, tournamentMembershipView } from '../utils/api';
 import { DefaultSidebarLayout } from '@innexgo/auth-react-components';
 import DashboardLayout from '../components/DashboardLayout';
 import React from 'react';
 import CreateTournament from '../components/CreateTournament';
 
 type Data = {
+  // all tournaments
   tournamentData: TournamentData[],
+  // all tournament memberships
+  tournamentMemberships: TournamentMembership[],
 }
 
 const loadData = async (props: AsyncProps<Data>) => {
   const tournamentData =
     await tournamentDataView({
+      active: true,
+      onlyRecent: true,
+      apiKey: props.apiKey.key
+    })
+      .then(unwrap);
+
+  const tournamentMemberships =
+    await tournamentMembershipView({
+      creatorUserId: [props.apiKey.creatorUserId],
       onlyRecent: true,
       apiKey: props.apiKey.key
     })
@@ -30,6 +42,7 @@ const loadData = async (props: AsyncProps<Data>) => {
 
   return {
     tournamentData,
+    tournamentMemberships
   }
 }
 
@@ -87,7 +100,13 @@ function Dashboard(props: AuthenticatedComponentProps) {
                       key={a.tournamentDataId}
                       className="m-2"
                       title={a.title}
-                      subtitle={a.description}
+                      subtitle={
+                        a.creatorUserId === props.apiKey.creatorUserId
+                          ? "ADMIN"
+                          : d.tournamentMemberships.some(x => x.tournament.tournamentId === a.tournament.tournamentId)
+                            ? "PLAYER"
+                            : ""
+                      }
                       text={`Created ${format(a.creationTime, "MMM d, Y")}`}
                       href={`/tournament?tournamentId=${a.tournament.tournamentId}`}
                     />

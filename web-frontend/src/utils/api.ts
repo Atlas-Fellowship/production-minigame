@@ -73,16 +73,6 @@ async function fetchApiOrNetworkError<T>(url: string, props: object): Promise<Re
 const undefToStr = (s: string | undefined) =>
   s === undefined ? apiUrl() : s
 
-export type SubmissionNewProps = {
-  code: string,
-  apiKey: string,
-}
-
-export function submissionNew(props: SubmissionNewProps, server?: string): Promise<Result<Submission, AppErrorCode>> {
-  return fetchApiOrNetworkError(undefToStr(server) + "/production_minigame/submission/new", props);
-}
-
-
 export type TournamentNewProps = {
   title: string,
   maxYears: number,

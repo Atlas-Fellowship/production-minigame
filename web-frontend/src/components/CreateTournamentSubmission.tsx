@@ -1,7 +1,7 @@
 import { ApiKey } from "@innexgo/frontend-auth-api"
 import { Formik, FormikErrors, FormikHelpers } from "formik"
 import { Button, Form } from "react-bootstrap"
-import { TournamentData, TournamentSubmission, submissionNew, tournamentSubmissionNew } from "../utils/api"
+import { TournamentData, TournamentSubmission, tournamentSubmissionNew } from "../utils/api"
 import { isErr, unwrap } from '@innexgo/frontend-common';
 
 import { Prism as SyntaxHighligher } from 'react-syntax-highlighter';
@@ -9,10 +9,8 @@ import { a11yDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 
 type CreateTournamentSubmissionProps = {
-  code: string,
   tournamentData: TournamentData,
   apiKey: ApiKey,
-  kind: ("VALIDATE" | "TESTCASE"),
   postSubmit: (ts: TournamentSubmission) => void
 }
 
@@ -21,7 +19,7 @@ type CreateTournamentSubmissionProps = {
 function CreateTournamentSubmission(props: CreateTournamentSubmissionProps) {
 
   type CreateSubmissionValue = {
-    name: string,
+    amount: number,
   }
 
   const onSubmit = async (values: CreateSubmissionValue,
@@ -32,8 +30,12 @@ function CreateTournamentSubmission(props: CreateTournamentSubmissionProps) {
     // Validate input
     let hasError = false;
 
-    if (values.name === "") {
-      errors.name = "Please enter a submission name.";
+    if (isNaN(values.amount)) {
+      errors.amount = "Please enter the amount you wish to produce.";
+      hasError = true;
+    }
+    if(values.amount < 0) {
+      errors.amount = "The amount you wish to produce must be positive";
       hasError = true;
     }
 
@@ -42,38 +44,9 @@ function CreateTournamentSubmission(props: CreateTournamentSubmissionProps) {
       return;
     }
 
-    const maybeSubmission = await submissionNew({
-      code: props.code,
-      apiKey: props.apiKey.key,
-    });
-
-
-    if (isErr(maybeSubmission)) {
-      switch (maybeSubmission.Err) {
-        case "UNAUTHORIZED": {
-          fprops.setStatus({
-            failureResult: "You are not authorized to create this submission.",
-            successResult: ""
-          });
-          break;
-        }
-        default: {
-          fprops.setStatus({
-            failureResult: "An unknown or network error has occured while trying to create submission.",
-            successResult: ""
-          });
-          break;
-        }
-      }
-      return;
-    }
-
-
     const maybeTournamentSubmission = await tournamentSubmissionNew({
       tournamentId: props.tournamentData.tournament.tournamentId,
-      submissionId: maybeSubmission.Ok.submissionId,
-      name: values.name,
-      kind: props.kind,
+      amount: values.amount,
       apiKey: props.apiKey.key,
     });
 
@@ -110,7 +83,7 @@ function CreateTournamentSubmission(props: CreateTournamentSubmissionProps) {
     <Formik<CreateSubmissionValue>
       onSubmit={onSubmit}
       initialValues={{
-        name: "",
+        amount: 0,
       }}
       initialStatus={{
         failureResult: "",
@@ -122,25 +95,16 @@ function CreateTournamentSubmission(props: CreateTournamentSubmissionProps) {
           noValidate
           onSubmit={fprops.handleSubmit} >
           <div hidden={fprops.status.successResult !== ""}>
-            <SyntaxHighligher
-              className="mx-5 mb-5"
-              showLineNumbers
-              language="python"
-              style={a11yDark}
-              children={props.code}
-            />
             <Form.Group className="mb-3">
-              <Form.Label>Submission Name</Form.Label>
+              <Form.Label>Amount to Produce</Form.Label>
               <Form.Control
-                name="name"
-                type="text"
-                placeholder="Submission Name"
-                as="input"
-                value={fprops.values.name}
-                onChange={e => fprops.setFieldValue("name", e.target.value)}
-                isInvalid={!!fprops.errors.name}
+                type="number"
+                onChange={fprops.handleChange}
+                value={fprops.values.amount}
+                name="amount"
+                isInvalid={!!fprops.errors.amount}
               />
-              <Form.Control.Feedback type="invalid">{fprops.errors.name}</Form.Control.Feedback>
+              <Form.Control.Feedback type="invalid">{fprops.errors.amount}</Form.Control.Feedback>
             </Form.Group>
             <Form.Group className="mb-3">
               <Button type="submit">Submit Form</Button>
