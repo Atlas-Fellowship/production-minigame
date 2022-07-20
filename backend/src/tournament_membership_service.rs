@@ -115,7 +115,7 @@ pub async fn query(
         " AND ($3::bigint   IS NULL OR ts.creation_time <= $3)",
         " AND ($4::bigint[] IS NULL OR ts.creator_user_id = ANY($4))",
         " AND ($5::bigint[] IS NULL OR ts.tournament_id = ANY($5))",
-        " AND ($6::bigint   IS NULL OR ts.active = $6)",
+        " AND ($6::bool     IS NULL OR ts.active = $6)",
         " ORDER BY ts.tournament_membership_id",
     ]
     .join("\n");

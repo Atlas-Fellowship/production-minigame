@@ -32,7 +32,7 @@ function CreateTournament(props: CreateTournamentProps) {
       hasError = true;
     }
 
-    if (isNaN(values.maxYears)) {
+    if (typeof values.maxYears === "string" || isNaN(values.maxYears)) {
       errors.maxYears= "Please enter the number of years the competition should continue.";
       hasError = true;
     }
