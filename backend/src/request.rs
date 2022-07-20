@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 pub struct TournamentNewProps {
   pub api_key: String,
   pub title: String,
-  pub max_year: i64,
+  pub max_years: i64,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

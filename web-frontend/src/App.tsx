@@ -20,10 +20,9 @@ import Dashboard from './pages/Dashboard';
 import Account from './pages/Account';
 
 // Competition  Pages
-import Compete from './pages/Compete';
-import ViewTournament from './pages/ViewTournament';
-import ViewTournamentSubmission from './pages/ViewTournamentSubmission';
-
+import TournamentCompetePage from './pages/TournamentCompetePage';
+import TournamentOverviewPage from './pages/TournamentOverviewPage';
+import TournamentAdminPage from './pages/TournamentAdminPage';
 
 import DarkAdaptedIcon from "./img/critica_icon_light.png";
 import LightAdaptedIcon from "./img/critica_icon_dark.png";
@@ -61,8 +60,8 @@ function App() {
   };
 
   const branding = {
-    name: "Open Source Prisoner's Dilemma",
-    tagline: "Battle your bots!",
+    name: "Insufficient Vespene Gas",
+    tagline: "manage your production!",
     homeUrl: "/",
     registerUrl: "/register",
     tosUrl: "/terms_of_service",
@@ -89,9 +88,9 @@ function App() {
       <Route path="/dashboard" element={<AuthenticatedComponentRenderer branding={branding} {...apiKeyGetSetter} component={Dashboard} />} />
       <Route path="/account" element={<AuthenticatedComponentRenderer branding={branding} {...apiKeyGetSetter} component={Account} />} />
       {/* Competition Pages */}
-      <Route path="/compete" element={<AuthenticatedComponentRenderer branding={branding} {...apiKeyGetSetter} component={Compete} />} />
-      <Route path="/tournament" element={<AuthenticatedComponentRenderer branding={branding} {...apiKeyGetSetter} component={ViewTournament} />} />
-      <Route path="/tournament_submission" element={<AuthenticatedComponentRenderer branding={branding} {...apiKeyGetSetter} component={ViewTournamentSubmission} />} />
+      <Route path="/tournament_compete" element={<AuthenticatedComponentRenderer branding={branding} {...apiKeyGetSetter} component={TournamentCompetePage} />} />
+      <Route path="/tournament_overview" element={<AuthenticatedComponentRenderer branding={branding} {...apiKeyGetSetter} component={TournamentOverviewPage} />} />
+      <Route path="/tournament_admin" element={<AuthenticatedComponentRenderer branding={branding} {...apiKeyGetSetter} component={TournamentAdminPage} />} />
 
       {/* Error page */}
       <Route path="*" element={<Error404 />} />
