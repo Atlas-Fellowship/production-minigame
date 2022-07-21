@@ -14,6 +14,8 @@ use super::tournament_membership_service;
 use super::tournament_service;
 use super::tournament_submission_service;
 
+use std::collections::HashMap;
+use std::collections::HashSet;
 use std::error::Error;
 
 use super::Config;
@@ -263,6 +265,45 @@ pub async fn tournament_data_increment_year(
 
     // TODO: add other tournament submissions if they're not created yet
 
+    let mut users_who_didnt_submit = HashSet::new();
+
+    // add all members to a hashmap marked false for now
+    for membership in tournament_membership_service::get_recent_by_tournament(
+        &mut sp,
+        tournament_data.tournament_id,
+    )
+    .await
+    .map_err(report_postgres_err)?
+    {
+        users_who_didnt_submit.insert(membership.creator_user_id);
+    }
+
+    for submission in tournament_submission_service::get_recent_by_tournament(
+        &mut sp,
+        tournament_data.tournament_id,
+    )
+    .await
+    .map_err(report_postgres_err)?
+    {
+        if submission.year == tournament_data.current_year {
+            users_who_didnt_submit.remove(&submission.creator_user_id);
+        }
+    }
+
+    for user_id in users_who_didnt_submit {
+        // create tournament submission
+        tournament_submission_service::add(
+            &mut sp,
+            user_id,
+            tournament.tournament_id,
+            tournament_data.current_year,
+            0,
+            true,
+        )
+        .await
+        .map_err(report_postgres_err)?;
+    }
+
     // create tournament data
     let tournament_data = tournament_data_service::add(
         &mut sp,
@@ -314,6 +355,11 @@ pub async fn tournament_membership_new(
 
     if !tournament_data.active {
         return Err(response::AppError::TournamentArchived);
+    }
+
+    // also validate that we haven't started the game yet
+    if !tournament_data.current_year > 0 {
+        return Err(response::AppError::TournamentStarted);
     }
 
     // create tournament membership

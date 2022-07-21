@@ -10,6 +10,7 @@ pub enum AppError {
     TournamentSubmissionTestcaseIncomplete,
     TournamentSubmissionTestcaseFails,
     TournamentArchived,
+    TournamentStarted,
     TournamentMembershipInvalid,
     TournamentMaxYearsAchieved,
     DecodeError,
