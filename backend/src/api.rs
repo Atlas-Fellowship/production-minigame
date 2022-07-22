@@ -49,8 +49,8 @@ pub fn api(
             config.clone(),
             db.clone(),
             auth_service.clone(),
-            warp::path!("public" / "tournament_data" / "increment_year"),
-            handlers::tournament_data_increment_year,
+            warp::path!("public" / "tournament_year" / "new"),
+            handlers::tournament_year_new,
         ),
         adapter(
             config.clone(),
@@ -72,6 +72,13 @@ pub fn api(
             auth_service.clone(),
             warp::path!("public" / "tournament_data" / "view"),
             handlers::tournament_data_view,
+        ),
+        adapter(
+            config.clone(),
+            db.clone(),
+            auth_service.clone(),
+            warp::path!("public" / "tournament_year" / "view"),
+            handlers::tournament_year_view,
         ),
         adapter(
             config.clone(),

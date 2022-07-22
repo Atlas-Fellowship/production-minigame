@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 pub struct TournamentNewProps {
   pub api_key: String,
   pub title: String,
+  pub incentive_start_year: i64,
   pub max_years: i64,
 }
 
@@ -20,7 +21,7 @@ pub struct TournamentDataNewProps {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct TournamentDataIncrementYearProps {
+pub struct TournamentYearNewProps {
   pub tournament_id: i64,
   pub api_key: String,
 }
@@ -52,6 +53,18 @@ pub struct TournamentDataViewProps {
   pub creator_user_id: Option<Vec<i64>>,
   pub tournament_id: Option<Vec<i64>>,
   pub active: Option<bool>,
+  pub only_recent: bool,
+  pub api_key: String,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TournamentYearViewProps {
+  pub tournament_year_id: Option<Vec<i64>>,
+  pub min_creation_time: Option<i64>,
+  pub max_creation_time: Option<i64>,
+  pub creator_user_id: Option<Vec<i64>>,
+  pub tournament_id: Option<Vec<i64>>,
   pub only_recent: bool,
   pub api_key: String,
 }

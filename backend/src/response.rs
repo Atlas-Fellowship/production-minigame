@@ -7,6 +7,7 @@ pub enum AppError {
     NoCapability,
     TournamentNonexistent,
     TournamentMaxYearsInvalid,
+    TournamentIncentiveStartYearInvalid,
     TournamentSubmissionTestcaseIncomplete,
     TournamentSubmissionTestcaseFails,
     TournamentArchived,
@@ -37,6 +38,7 @@ pub struct Tournament {
     pub tournament_id: i64,
     pub creation_time: i64,
     pub creator_user_id: i64,
+    pub incentive_start_year: i64,
     pub max_years: i64,
 }
 
@@ -48,8 +50,18 @@ pub struct TournamentData {
     pub creator_user_id: i64,
     pub tournament: Tournament,
     pub title: String,
-    pub current_year: i64,
     pub active: bool,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TournamentYear {
+    pub tournament_year_id: i64,
+    pub creation_time: i64,
+    pub creator_user_id: i64,
+    pub tournament: Tournament,
+    pub current_year: i64,
+    pub incentive: i64,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

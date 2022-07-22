@@ -31,6 +31,11 @@ const loadManageTournamentPage = async (props: AsyncProps<ManageTournamentPageDa
     .then(x => getFirstOr(x, "NOT_FOUND"))
     .then(unwrap);
 
+  // Really weak security protection, should be changed to serverside!
+  if(tournamentData.creatorUserId !== props.apiKey.creatorUserId) {
+      throw new Error("UNAUTHORIZED");
+  }
+
   const tournamentSubmissions = await tournamentSubmissionView({
     tournamentId: [props.tournamentId],
     apiKey: props.apiKey.key
@@ -70,14 +75,6 @@ function ManageTournamentPage(props: AuthenticatedComponentProps) {
                   apiKey={props.apiKey}
                 />
               </Section>
-              <div className="text-center">
-                <a className="btn btn-primary mx-3" href={`/compete?tournamentId=${tournamentId}&kind=VALIDATE`}>
-                  Compete!
-                </a>
-                <a className="btn btn-primary mx-3" href={`/compete?tournamentId=${tournamentId}&kind=TESTCASE`} hidden={props.apiKey.creatorUserId !== data.tournamentData.tournament.creatorUserId}>
-                  Write a Testcase!
-                </a>
-              </div>
             </>}
             </Async.Fulfilled>
           </>}

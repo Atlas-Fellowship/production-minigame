@@ -4,6 +4,7 @@ export type Tournament = {
   tournamentId: number,
   creationTime: number,
   creatorUserId: number,
+  incentiveStartYear: number,
   maxYears: number,
 }
 
@@ -13,8 +14,16 @@ export type TournamentData = {
   creatorUserId: number,
   tournament: Tournament,
   title: string,
-  currentYear: number,
   active: boolean,
+}
+
+export type TournamentYear = {
+  tournamentYearId: number,
+  creationTime: number,
+  creatorUserId: number,
+  tournament: Tournament,
+  currentYear: number,
+  incentive: number,
 }
 
 export type TournamentMembership = {
@@ -39,6 +48,7 @@ export const AppErrorCodes = [
   "NO_CAPABILITY",
   "TOURNAMENT_NONEXISTENT",
   "TOURNAMENT_MAX_YEARS_INVALID",
+  "TOURNAMENT_INCENTIVE_START_YEAR_INVALID",
   "TOURNAMENT_SUBMISSION_TESTCASE_INCOMPLETE",
   "TOURNAMENT_SUBMISSION_TESTCASE_FAILS",
   "TOURNAMENT_ARCHIVED",
@@ -76,6 +86,7 @@ const undefToStr = (s: string | undefined) =>
 
 export type TournamentNewProps = {
   title: string,
+  incentiveStartYear: number,
   maxYears: number,
   apiKey: string,
 }
@@ -95,13 +106,13 @@ export function tournamentDataNew(props: TournamentDataNewProps, server?: string
   return fetchApiOrNetworkError(undefToStr(server) + "/production_minigame/tournament_data/new", props);
 }
 
-export type TournamentDataIncrementYearProps = {
+export type TournamentYearNew = {
   tournamentId: number,
   apiKey: string,
 }
 
-export function tournamentDataIncrementYear(props: TournamentDataNewProps, server?: string): Promise<Result<TournamentData, AppErrorCode>> {
-  return fetchApiOrNetworkError(undefToStr(server) + "/production_minigame/tournament_data/increment_year", props);
+export function tournamentYearNew(props: TournamentYearNew, server?: string): Promise<Result<TournamentData, AppErrorCode>> {
+  return fetchApiOrNetworkError(undefToStr(server) + "/production_minigame/tournament_year/new", props);
 }
 
 export type TournamentMembershipNewProps = {
@@ -167,5 +178,19 @@ export type TournamentSubmissionViewProps = {
 
 export function tournamentSubmissionView(props: TournamentSubmissionViewProps, server?: string): Promise<Result<TournamentSubmission[], AppErrorCode>> {
   return fetchApiOrNetworkError(undefToStr(server) + "/production_minigame/tournament_submission/view", props);
+}
+
+export type TournamentYearViewProps = {
+  tournamentYearId?: number[],
+  minCreationTime?: number,
+  maxCreationTime?: number,
+  creatorUserId?: number[],
+  tournamentId?: number[],
+  onlyRecent: boolean,
+  apiKey: string,
+}
+
+export function tournamentYearView(props: TournamentYearViewProps, server?: string): Promise<Result<TournamentYear[], AppErrorCode>> {
+  return fetchApiOrNetworkError(undefToStr(server) + "/production_minigame/tournament_year/view", props);
 }
 

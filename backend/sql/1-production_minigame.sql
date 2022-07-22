@@ -12,6 +12,7 @@ create table tournament(
   tournament_id bigserial primary key,
   creation_time bigint not null default extract(epoch from now()) * 1000,
   creator_user_id bigint not null,
+  incentive_start_year bigint not null,
   max_years bigint not null
 );
 
@@ -24,8 +25,6 @@ create table tournament_data(
   tournament_id bigint not null references tournament(tournament_id),
   -- tournament title
   title text not null,
-  -- current year
-  current_year bigint not null,
   -- is the tournament still visible
   active bool not null
 );
@@ -38,6 +37,29 @@ create view recent_tournament_data as
    group by tournament_id
   ) maxids
   on maxids.id = td.tournament_data_id;
+
+drop table if exists tournament_year cascade;
+create table tournament_year(
+  tournament_year_id bigserial primary key,
+  creation_time bigint not null default extract(epoch from now()) * 1000,
+  creator_user_id bigint not null,
+  tournament_id bigint not null references tournament(tournament_id),
+  -- tournament year
+  current_year bigint not null,
+  -- signal being sent
+  incentive bigint not null
+);
+
+create view recent_tournament_year as
+  select td.* from tournament_year td
+  inner join (
+   select max(tournament_year_id) id 
+   from tournament_year 
+   group by tournament_id
+  ) maxids
+  on maxids.id = td.tournament_year_id;
+
+  
 
 drop table if exists tournament_membership cascade;
 create table tournament_membership(

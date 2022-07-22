@@ -17,6 +17,7 @@ function CreateTournament(props: CreateTournamentProps) {
   type CreateTournamentValue = {
     title: string,
     maxYears: number,
+    incentiveStartYear: number,
   }
 
   const onSubmit = async (values: CreateTournamentValue,
@@ -37,6 +38,21 @@ function CreateTournament(props: CreateTournamentProps) {
       hasError = true;
     }
 
+    if (typeof values.incentiveStartYear === "string" || isNaN(values.maxYears)) {
+      errors.incentiveStartYear= "Please enter the number of years the competition should continue.";
+      hasError = true;
+    }
+
+    if(values.incentiveStartYear <= 1) {
+      errors.maxYears= "The game must continue for more than 1 year.";
+      hasError = true;
+    }
+
+    if(values.incentiveStartYear  >= values.maxYears) {
+      errors.maxYears= "The year the incentives starts must be less than the max year.";
+      hasError = true;
+    }
+
     fprops.setErrors(errors);
     if (hasError) {
       return;
@@ -44,6 +60,7 @@ function CreateTournament(props: CreateTournamentProps) {
 
     const maybeTournament = await tournamentNew({
       title: values.title,
+      incentiveStartYear: values.incentiveStartYear,
       maxYears: values.maxYears,
       apiKey: props.apiKey.key,
     });
@@ -60,6 +77,13 @@ function CreateTournament(props: CreateTournamentProps) {
         case "TOURNAMENT_MAX_YEARS_INVALID": {
           fprops.setStatus({
             failureResult: "Please enter more than 1 year.",
+            successResult: ""
+          });
+          break;
+        }
+        case "TOURNAMENT_INCENTIVE_START_YEAR_INVALID": {
+          fprops.setStatus({
+            failureResult: "Incentive start year invalid",
             successResult: ""
           });
           break;
@@ -88,6 +112,7 @@ function CreateTournament(props: CreateTournamentProps) {
       onSubmit={onSubmit}
       initialValues={{
         title: "",
+        incentiveStartYear: 5,
         maxYears: 10,
       }}
       initialStatus={{
@@ -123,6 +148,17 @@ function CreateTournament(props: CreateTournamentProps) {
                 isInvalid={!!fprops.errors.maxYears}
               />
               <Form.Control.Feedback type="invalid">{fprops.errors.maxYears}</Form.Control.Feedback>
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Year to start adding randomized market differences.</Form.Label>
+              <Form.Control
+                type="number"
+                onChange={fprops.handleChange}
+                value={fprops.values.incentiveStartYear}
+                name="incentiveStartYear"
+                isInvalid={!!fprops.errors.incentiveStartYear}
+              />
+              <Form.Control.Feedback type="invalid">{fprops.errors.incentiveStartYear}</Form.Control.Feedback>
             </Form.Group>
             <Form.Group className="mb-3">
               <Button type="submit">Submit Form</Button>

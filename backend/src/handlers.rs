@@ -1,3 +1,5 @@
+use crate::tournament_year_service;
+
 use super::Db;
 use auth_service_api::client::AuthService;
 use auth_service_api::response::AuthError;
@@ -14,7 +16,6 @@ use super::tournament_membership_service;
 use super::tournament_service;
 use super::tournament_submission_service;
 
-use std::collections::HashMap;
 use std::collections::HashSet;
 use std::error::Error;
 
@@ -61,6 +62,7 @@ async fn fill_tournament(
         tournament_id: tournament.tournament_id,
         creation_time: tournament.creation_time,
         creator_user_id: tournament.creator_user_id,
+        incentive_start_year: tournament.incentive_start_year,
         max_years: tournament.max_years,
     })
 }
@@ -80,8 +82,26 @@ async fn fill_tournament_data(
         creator_user_id: tournament_data.creator_user_id,
         tournament: fill_tournament(con, tournament).await?,
         title: tournament_data.title,
-        current_year: tournament_data.current_year,
         active: tournament_data.active,
+    })
+}
+
+async fn fill_tournament_year(
+    con: &mut tokio_postgres::Client,
+    tournament_year: TournamentYear,
+) -> Result<response::TournamentYear, response::AppError> {
+    let tournament = tournament_service::get_by_tournament_id(con, tournament_year.tournament_id)
+        .await
+        .map_err(report_postgres_err)?
+        .ok_or(response::AppError::TournamentNonexistent)?;
+
+    Ok(response::TournamentYear {
+        tournament_year_id: tournament_year.tournament_year_id,
+        creation_time: tournament_year.creation_time,
+        creator_user_id: tournament_year.creator_user_id,
+        tournament: fill_tournament(con, tournament).await?,
+        current_year: tournament_year.current_year,
+        incentive: tournament_year.incentive,
     })
 }
 
@@ -150,12 +170,21 @@ pub async fn tournament_new(
         return Err(response::AppError::TournamentMaxYearsInvalid);
     }
 
+    if props.incentive_start_year <= 1 || props.incentive_start_year >= props.max_years {
+        return Err(response::AppError::TournamentIncentiveStartYearInvalid);
+    }
+
     let mut sp = con.transaction().await.map_err(report_postgres_err)?;
 
     // create tournament
-    let tournament = tournament_service::add(&mut sp, user.user_id, props.max_years)
-        .await
-        .map_err(report_postgres_err)?;
+    let tournament = tournament_service::add(
+        &mut sp,
+        user.user_id,
+        props.incentive_start_year,
+        props.max_years,
+    )
+    .await
+    .map_err(report_postgres_err)?;
 
     // create tournament data
     let tournament_data = tournament_data_service::add(
@@ -163,11 +192,16 @@ pub async fn tournament_new(
         user.user_id,
         tournament.tournament_id,
         props.title,
-        0,
         true,
     )
     .await
     .map_err(report_postgres_err)?;
+
+    // create year
+    let tournament_year =
+        tournament_year_service::add(&mut sp, user.user_id, tournament.tournament_id, 0, 0)
+            .await
+            .map_err(report_postgres_err)?;
 
     sp.commit().await.map_err(report_postgres_err)?;
 
@@ -198,20 +232,12 @@ pub async fn tournament_data_new(
         return Err(response::AppError::TournamentNonexistent);
     }
 
-    // get old tournament data
-    let tournament_data =
-        tournament_data_service::get_recent_by_tournament_id(&mut sp, props.tournament_id)
-            .await
-            .map_err(report_postgres_err)?
-            .ok_or(response::AppError::TournamentNonexistent)?;
-
     // create tournament data
     let tournament_data = tournament_data_service::add(
         &mut sp,
         user.user_id,
         tournament.tournament_id,
         props.title,
-        tournament_data.current_year,
         props.active,
     )
     .await
@@ -223,12 +249,12 @@ pub async fn tournament_data_new(
     fill_tournament_data(con, tournament_data).await
 }
 
-pub async fn tournament_data_increment_year(
+pub async fn tournament_year_new(
     _config: Config,
     db: Db,
     auth_service: AuthService,
-    props: request::TournamentDataIncrementYearProps,
-) -> Result<response::TournamentData, response::AppError> {
+    props: request::TournamentYearNewProps,
+) -> Result<response::TournamentYear, response::AppError> {
     // validate api key
     let user = get_user_if_api_key_valid(&auth_service, props.api_key).await?;
 
@@ -247,7 +273,7 @@ pub async fn tournament_data_increment_year(
         return Err(response::AppError::TournamentNonexistent);
     }
 
-    // get old tournament data
+    // validate tournament is still active
     let tournament_data =
         tournament_data_service::get_recent_by_tournament_id(&mut sp, props.tournament_id)
             .await
@@ -258,8 +284,15 @@ pub async fn tournament_data_increment_year(
         return Err(response::AppError::TournamentArchived);
     }
 
+    // get old tournament year
+    let tournament_year =
+        tournament_year_service::get_recent_by_tournament_id(&mut sp, props.tournament_id)
+            .await
+            .map_err(report_postgres_err)?
+            .ok_or(response::AppError::TournamentNonexistent)?;
+
     // if max years hit
-    if tournament_data.current_year >= tournament.max_years {
+    if tournament_year.current_year >= tournament.max_years {
         return Err(response::AppError::TournamentMaxYearsAchieved);
     }
 
@@ -285,7 +318,7 @@ pub async fn tournament_data_increment_year(
     .await
     .map_err(report_postgres_err)?
     {
-        if submission.year == tournament_data.current_year {
+        if submission.year == tournament_year.current_year {
             users_who_didnt_submit.remove(&submission.creator_user_id);
         }
     }
@@ -296,7 +329,7 @@ pub async fn tournament_data_increment_year(
             &mut sp,
             user_id,
             tournament.tournament_id,
-            tournament_data.current_year,
+            tournament_year.current_year,
             0,
             true,
         )
@@ -305,13 +338,12 @@ pub async fn tournament_data_increment_year(
     }
 
     // create tournament data
-    let tournament_data = tournament_data_service::add(
+    let tournament_year = tournament_year_service::add(
         &mut sp,
         user.user_id,
         tournament.tournament_id,
-        tournament_data.title,
-        tournament_data.current_year + 1,
-        tournament_data.active,
+        tournament_year.current_year + 1,
+        0,
     )
     .await
     .map_err(report_postgres_err)?;
@@ -319,7 +351,7 @@ pub async fn tournament_data_increment_year(
     sp.commit().await.map_err(report_postgres_err)?;
 
     // return json
-    fill_tournament_data(con, tournament_data).await
+    fill_tournament_year(con, tournament_year).await
 }
 
 pub async fn tournament_membership_new(
@@ -358,7 +390,13 @@ pub async fn tournament_membership_new(
     }
 
     // also validate that we haven't started the game yet
-    if !tournament_data.current_year > 0 {
+    let tournament_year =
+        tournament_year_service::get_recent_by_tournament_id(&mut sp, props.tournament_id)
+            .await
+            .map_err(report_postgres_err)?
+            .ok_or(response::AppError::TournamentNonexistent)?;
+
+    if !tournament_year.current_year > 0 {
         return Err(response::AppError::TournamentStarted);
     }
 
@@ -419,13 +457,18 @@ pub async fn tournament_submission_new(
     }
 
     // get current year from tournament_data
+    let tournament_year =
+        tournament_year_service::get_recent_by_tournament_id(&mut sp, props.tournament_id)
+            .await
+            .map_err(report_postgres_err)?
+            .ok_or(response::AppError::TournamentNonexistent)?;
 
     // create tournament submission
     let tournament_submission = tournament_submission_service::add(
         &mut sp,
         user.user_id,
         tournament.tournament_id,
-        tournament_data.current_year,
+        tournament_year.current_year,
         props.amount,
         false,
     )
@@ -499,4 +542,25 @@ pub async fn tournament_submission_view(
     }
 
     Ok(resp_tournament_submissions)
+}
+
+pub async fn tournament_year_view(
+    _config: Config,
+    db: Db,
+    _auth_service: AuthService,
+    props: request::TournamentYearViewProps,
+) -> Result<Vec<response::TournamentYear>, response::AppError> {
+    let con = &mut *db.lock().await;
+    // get users
+    let tournament_year = tournament_year_service::query(con, props)
+        .await
+        .map_err(report_postgres_err)?;
+
+    // return tournament_years
+    let mut resp_tournament_years = vec![];
+    for u in tournament_year.into_iter() {
+        resp_tournament_years.push(fill_tournament_year(con, u).await?);
+    }
+
+    Ok(resp_tournament_years)
 }
