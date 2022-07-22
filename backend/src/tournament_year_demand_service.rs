@@ -79,11 +79,7 @@ pub async fn query(
     props: request::TournamentYearDemandViewProps,
 ) -> Result<Vec<TournamentYearDemand>, tokio_postgres::Error> {
     let sql = [
-        if props.only_recent {
-            "SELECT td.* FROM recent_tournament_year_demand td"
-        } else {
-            "SELECT td.* FROM tournament_year_demand td"
-        },
+        "SELECT td.* FROM tournament_year_demand td",
         " WHERE 1 = 1",
         " AND ($1::bigint[]  IS NULL OR td.tournament_year_demand_id = ANY($1))",
         " AND ($2::bigint    IS NULL OR td.creation_time >= $2)",

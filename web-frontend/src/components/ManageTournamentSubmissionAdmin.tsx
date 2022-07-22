@@ -3,7 +3,7 @@ import { Table } from 'react-bootstrap';
 import update from 'immutability-helper';
 import { ApiKey } from '@innexgo/frontend-auth-api';
 import { Link, AddButton, DisplayModal } from '@innexgo/common-react-components';
-import { TournamentSubmission, TournamentYear } from '../utils/api';
+import { TournamentSubmission, TournamentYear, TournamentYearDemand } from '../utils/api';
 import { ViewUser } from './ViewData';
 
 import { Eye as ViewIcon } from 'react-bootstrap-icons';
@@ -11,12 +11,15 @@ import { Eye as ViewIcon } from 'react-bootstrap-icons';
 type ManageTournamentSubmissionsTournamentProps = {
   tournamentSubmissions: TournamentSubmission[],
   tournamentYears: TournamentYear[],
+  tournamentYearDemands: TournamentYearDemand[],
   apiKey: ApiKey,
 }
 
 function ManageTournamentSubmissionsTournament(props: ManageTournamentSubmissionsTournamentProps) {
   const submissions = props.tournamentSubmissions.map(x => x);
   const years = props.tournamentYears.map(x => x);
+  const demands = props.tournamentYearDemands.map(x => x);
+
   // sort by year ascending
   years.sort((a, b) => a.currentYear - b.currentYear);
 
@@ -60,11 +63,11 @@ function ManageTournamentSubmissionsTournament(props: ManageTournamentSubmission
                 </tr>
               </thead>
               <tbody>
-                {yearlySubmissions.length === 0
+                {d.subs.length === 0
                   ? <tr><td className="text-center" colSpan={4}>No Submissions</td></tr>
                   : <> </>
                 }
-                {yearlySubmissions.map((s, i) =>
+                {d.subs.map((s, i) =>
                   <tr>
                     <td>{i + 1}</td>
                     <td><ViewUser userId={s.creatorUserId} apiKey={props.apiKey} expanded={false} /></td>

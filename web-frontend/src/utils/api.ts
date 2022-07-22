@@ -26,8 +26,17 @@ export type TournamentYear = {
   creatorUserId: number,
   tournament: Tournament,
   currentYear: number,
+}
+
+export type TournamentYearDemand = {
+  tournamentYearId: number,
+  creationTime: number,
+  userId: number,
+  tournament: Tournament,
+  year: number,
   demand: number,
 }
+
 
 export type TournamentMembership = {
   tournamentDataId: number,
@@ -200,3 +209,15 @@ export function tournamentYearView(props: TournamentYearViewProps, server?: stri
   return fetchApiOrNetworkError(undefToStr(server) + "/production_minigame/tournament_year/view", props);
 }
 
+export type TournamentYearDemandViewProps = {
+  tournamentYearDemandId?: number[],
+  minCreationTime?: number,
+  maxCreationTime?: number,
+  creatorUserId?: number[],
+  tournamentId?: number[],
+  apiKey: string,
+}
+
+export function tournamentYearDemandView(props: TournamentYearDemandViewProps, server?: string): Promise<Result<TournamentYearDemand[], AppErrorCode>> {
+  return fetchApiOrNetworkError(undefToStr(server) + "/production_minigame/tournament_year_demand/view", props);
+}

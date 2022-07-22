@@ -84,6 +84,13 @@ pub fn api(
             config.clone(),
             db.clone(),
             auth_service.clone(),
+            warp::path!("public" / "tournament_year_demand" / "view"),
+            handlers::tournament_year_demand_view,
+        ),
+        adapter(
+            config.clone(),
+            db.clone(),
+            auth_service.clone(),
             warp::path!("public" / "tournament_membership" / "view"),
             handlers::tournament_membership_view,
         ),

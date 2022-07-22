@@ -38,6 +38,9 @@ pub struct Tournament {
     pub tournament_id: i64,
     pub creation_time: i64,
     pub creator_user_id: i64,
+    pub cost_per_unit: i64,
+    pub baseline_demand: i64,
+    pub incentive_multiplier: i64,
     pub incentive_start_year: i64,
     pub max_years: i64,
 }
@@ -61,8 +64,19 @@ pub struct TournamentYear {
     pub creator_user_id: i64,
     pub tournament: Tournament,
     pub current_year: i64,
-    pub incentive: i64,
 }
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TournamentYearDemand {
+    pub tournament_year_demand_id: i64,
+    pub creation_time: i64,
+    pub user_id: i64,
+    pub tournament: Tournament,
+    pub year: i64,
+    pub demand: i64,
+}
+
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

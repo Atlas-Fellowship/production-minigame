@@ -1,3 +1,4 @@
+use crate::tournament_year_demand_service;
 use crate::tournament_year_service;
 
 use super::Db;
@@ -62,6 +63,9 @@ async fn fill_tournament(
         tournament_id: tournament.tournament_id,
         creation_time: tournament.creation_time,
         creator_user_id: tournament.creator_user_id,
+        cost_per_unit: tournament.cost_per_unit,
+        baseline_demand: tournament.baseline_demand,
+        incentive_multiplier: tournament.incentive_multiplier,
         incentive_start_year: tournament.incentive_start_year,
         max_years: tournament.max_years,
     })
@@ -101,10 +105,28 @@ async fn fill_tournament_year(
         creator_user_id: tournament_year.creator_user_id,
         tournament: fill_tournament(con, tournament).await?,
         current_year: tournament_year.current_year,
-        incentive: tournament_year.incentive,
     })
 }
 
+async fn fill_tournament_year_demand(
+    con: &mut tokio_postgres::Client,
+    tournament_year_demand: TournamentYearDemand,
+) -> Result<response::TournamentYearDemand, response::AppError> {
+    let tournament =
+        tournament_service::get_by_tournament_id(con, tournament_year_demand.tournament_id)
+            .await
+            .map_err(report_postgres_err)?
+            .ok_or(response::AppError::TournamentNonexistent)?;
+
+    Ok(response::TournamentYearDemand {
+        tournament_year_demand_id: tournament_year_demand.tournament_year_demand_id,
+        creation_time: tournament_year_demand.creation_time,
+        user_id: tournament_year_demand.user_id,
+        tournament: fill_tournament(con, tournament).await?,
+        year: tournament_year_demand.year,
+        demand: tournament_year_demand.demand,
+    })
+}
 async fn fill_tournament_membership(
     con: &mut tokio_postgres::Client,
     tournament_membership: TournamentMembership,
@@ -155,6 +177,21 @@ pub async fn get_user_if_api_key_valid(
         .map_err(report_auth_err)
 }
 
+// generate 2 random numbers between -|m| and |m|, pick the one farthest from zero
+fn gen_random_incentive(m: i64) -> i64 {
+    if m == 0 {
+        return 0;
+    }
+    let absmul = m.abs();
+    let r1 = utils::random_number(-absmul, absmul);
+    let r2 = utils::random_number(-absmul, absmul);
+    if r1.abs() > r2.abs() {
+        return r1;
+    } else {
+        return r2;
+    }
+}
+
 pub async fn tournament_new(
     _config: Config,
     db: Db,
@@ -170,7 +207,7 @@ pub async fn tournament_new(
         return Err(response::AppError::TournamentMaxYearsInvalid);
     }
 
-    if props.incentive_start_year <= 1 || props.incentive_start_year >= props.max_years {
+    if props.incentive_start_year <= 1 {
         return Err(response::AppError::TournamentIncentiveStartYearInvalid);
     }
 
@@ -180,6 +217,9 @@ pub async fn tournament_new(
     let tournament = tournament_service::add(
         &mut sp,
         user.user_id,
+        props.cost_per_unit,
+        props.baseline_demand,
+        props.incentive_multiplier,
         props.incentive_start_year,
         props.max_years,
     )
@@ -198,10 +238,9 @@ pub async fn tournament_new(
     .map_err(report_postgres_err)?;
 
     // create year
-    let tournament_year =
-        tournament_year_service::add(&mut sp, user.user_id, tournament.tournament_id, 0, 0)
-            .await
-            .map_err(report_postgres_err)?;
+    tournament_year_service::add(&mut sp, user.user_id, tournament.tournament_id, 0)
+        .await
+        .map_err(report_postgres_err)?;
 
     sp.commit().await.map_err(report_postgres_err)?;
 
@@ -301,16 +340,16 @@ pub async fn tournament_year_new(
     let mut users_who_didnt_submit = HashSet::new();
 
     // add all members to a hashmap marked false for now
-    for membership in tournament_membership_service::get_recent_by_tournament(
+    let memberships = tournament_membership_service::get_recent_by_tournament(
         &mut sp,
         tournament_data.tournament_id,
     )
     .await
-    .map_err(report_postgres_err)?
-    {
+    .map_err(report_postgres_err)?;
+
+    for membership in &memberships {
         users_who_didnt_submit.insert(membership.creator_user_id);
     }
-
     for submission in tournament_submission_service::get_recent_by_tournament(
         &mut sp,
         tournament_data.tournament_id,
@@ -323,6 +362,7 @@ pub async fn tournament_year_new(
         }
     }
 
+    // autogenerate a submission if not submitted
     for user_id in users_who_didnt_submit {
         // create tournament submission
         tournament_submission_service::add(
@@ -343,10 +383,30 @@ pub async fn tournament_year_new(
         user.user_id,
         tournament.tournament_id,
         tournament_year.current_year + 1,
-        0,
     )
     .await
     .map_err(report_postgres_err)?;
+
+    // generate the new demands for all members
+    let do_incentives = tournament_year.current_year >= tournament.incentive_start_year;
+    for membership in memberships {
+        let incentive = if do_incentives {
+            gen_random_incentive(tournament.incentive_multiplier)
+        } else {
+            0
+        };
+        let demand = tournament.baseline_demand + incentive;
+
+        tournament_year_demand_service::add(
+            &mut sp,
+            tournament.tournament_id,
+            membership.creator_user_id,
+            tournament_year.current_year,
+            demand,
+        )
+        .await
+        .map_err(report_postgres_err)?;
+    }
 
     sp.commit().await.map_err(report_postgres_err)?;
 
@@ -406,6 +466,25 @@ pub async fn tournament_membership_new(
         user.user_id,
         tournament.tournament_id,
         props.active,
+    )
+    .await
+    .map_err(report_postgres_err)?;
+
+    // generate demand value
+    let incentive = if tournament.incentive_start_year <= 0 {
+        gen_random_incentive(tournament.incentive_multiplier)
+    } else {
+        0
+    };
+    let demand = tournament.baseline_demand + incentive;
+
+    // create demand for this year
+    tournament_year_demand_service::add(
+        &mut sp,
+        tournament.tournament_id,
+        user.user_id,
+        0,
+        demand,
     )
     .await
     .map_err(report_postgres_err)?;
@@ -563,4 +642,25 @@ pub async fn tournament_year_view(
     }
 
     Ok(resp_tournament_years)
+}
+
+pub async fn tournament_year_demand_view(
+    _config: Config,
+    db: Db,
+    _auth_service: AuthService,
+    props: request::TournamentYearDemandViewProps,
+) -> Result<Vec<response::TournamentYearDemand>, response::AppError> {
+    let con = &mut *db.lock().await;
+    // get users
+    let tournament_year_demand = tournament_year_demand_service::query(con, props)
+        .await
+        .map_err(report_postgres_err)?;
+
+    // return tournament_year_demands
+    let mut resp_tournament_year_demands = vec![];
+    for u in tournament_year_demand.into_iter() {
+        resp_tournament_year_demands.push(fill_tournament_year_demand(con, u).await?);
+    }
+
+    Ok(resp_tournament_year_demands)
 }

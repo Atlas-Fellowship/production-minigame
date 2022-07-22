@@ -59,3 +59,8 @@ pub fn random_string() -> String {
         .collect();
     return s;
 }
+
+// max > min required!
+pub fn random_number(min: i64, max: i64) -> i64 {
+    rand::thread_rng().gen_range(min..max)
+}
