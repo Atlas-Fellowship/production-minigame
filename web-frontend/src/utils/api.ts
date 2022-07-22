@@ -42,6 +42,7 @@ export const AppErrorCodes = [
   "TOURNAMENT_SUBMISSION_TESTCASE_INCOMPLETE",
   "TOURNAMENT_SUBMISSION_TESTCASE_FAILS",
   "TOURNAMENT_ARCHIVED",
+  "TOURNAMENT_STARTED",
   "TOURNAMENT_MEMBERSHIP_INVALID",
   "TOURNAMENT_MAX_YEARS_ACHIEVED",
   "DECODE_ERROR",
@@ -105,6 +106,7 @@ export function tournamentDataIncrementYear(props: TournamentDataNewProps, serve
 
 export type TournamentMembershipNewProps = {
   tournamentId: number,
+  active: boolean,
   apiKey: string,
 }
 

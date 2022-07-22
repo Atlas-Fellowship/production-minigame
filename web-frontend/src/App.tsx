@@ -61,7 +61,7 @@ function App() {
 
   const branding = {
     name: "Insufficient Vespene Gas",
-    tagline: "manage your production!",
+    tagline: "Manage your production!",
     homeUrl: "/",
     registerUrl: "/register",
     tosUrl: "/terms_of_service",

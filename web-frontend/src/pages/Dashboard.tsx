@@ -1,4 +1,4 @@
-import { Card, Row, Container, Col } from 'react-bootstrap';
+import { Card, Row, Container, Col, Button } from 'react-bootstrap';
 import { Async, AsyncProps } from 'react-async';
 import update from 'immutability-helper';
 import { Section, Loader, AddButton, DisplayModal, } from '@innexgo/common-react-components';
@@ -15,6 +15,7 @@ import { DefaultSidebarLayout } from '@innexgo/auth-react-components';
 import DashboardLayout from '../components/DashboardLayout';
 import React from 'react';
 import CreateTournament from '../components/CreateTournament';
+import CreateTournamentMembership from '../components/CreateTournamentMembership';
 
 type Data = {
   // all tournaments
@@ -68,6 +69,29 @@ function ResourceCard(props: ResourceCardProps) {
   )
 }
 
+
+type ActionCardProps = {
+  className?: string,
+  title: string,
+  subtitle: string,
+  text: string,
+  onClick: () => void,
+  buttonText: string
+}
+
+function ActionCard(props: ActionCardProps) {
+  return (
+    <Card style={{ width: '15rem' }} className={props.className}>
+      <Card.Body>
+        <Card.Title>{props.title}</Card.Title>
+        <Card.Subtitle className="text-muted">{props.subtitle}</Card.Subtitle>
+        <Card.Text>{props.text}</Card.Text>
+        <Button onClick={props.onClick}>{props.buttonText}</Button>
+      </Card.Body>
+    </Card>
+  )
+}
+
 type AddNewCardProps = {
   className?: string,
   setShow: (a: boolean) => void,
@@ -82,6 +106,8 @@ const AddNewCard = (props: AddNewCardProps) =>
 function Dashboard(props: AuthenticatedComponentProps) {
 
   const [showNewTournamentModal, setShowNewTournamentModal] = React.useState(false);
+  const [showJoinTournamentModal, setShowJoinTournamentModal] = React.useState<TournamentData | null>(null);
+
 
   return <DashboardLayout {...props}>
     <Container fluid className="py-4 px-4">
@@ -95,22 +121,53 @@ function Dashboard(props: AuthenticatedComponentProps) {
             <Async.Fulfilled<Data>>{d =>
               <div className="d-flex flex-wrap">
                 {
-                  d.tournamentData.map(a =>
+                  // tournaments you own
+                  d.tournamentData.filter(a => a.creatorUserId === props.apiKey.creatorUserId).map(a =>
                     <ResourceCard
                       key={a.tournamentDataId}
                       className="m-2"
                       title={a.title}
-                      subtitle={
-                        a.creatorUserId === props.apiKey.creatorUserId
-                          ? "ADMIN"
-                          : d.tournamentMemberships.some(x => x.tournament.tournamentId === a.tournament.tournamentId)
-                            ? "PLAYER"
-                            : ""
-                      }
+                      subtitle="ADMIN"
                       text={`Created ${format(a.creationTime, "MMM d, Y")}`}
-                      href={`/tournament?tournamentId=${a.tournament.tournamentId}`}
+                      href={`/tournament_admin?tournamentId=${a.tournament.tournamentId}`}
                     />
                   )
+                }
+                {
+                  // tournaments you're a member of 
+                  d.tournamentData
+                    .filter(a =>
+                      d.tournamentMemberships.some(m => m.tournament.tournamentId == a.tournament.tournamentId)
+                    )
+                    .map(a =>
+                      <ResourceCard
+                        key={a.tournamentDataId}
+                        className="m-2"
+                        title={a.title}
+                        subtitle="PLAYER"
+                        text={`Created ${format(a.creationTime, "MMM d, Y")}`}
+                        href={`/tournament_overview?tournamentId=${a.tournament.tournamentId}`}
+                      />
+                    )
+                }
+                {
+                  // show new tournaments of which you are not a member
+                  d.tournamentData
+                    .filter(a =>
+                      !d.tournamentMemberships.some(m => m.tournament.tournamentId == a.tournament.tournamentId)
+                      && a.creatorUserId !== props.apiKey.creatorUserId
+                    )
+                    .map(a =>
+                      <ActionCard
+                        key={a.tournamentDataId}
+                        className="m-2"
+                        title={a.title}
+                        subtitle=""
+                        text={`Created ${format(a.creationTime, "MMM d, Y")}`}
+                        buttonText="Join!"
+                        onClick={() => setShowJoinTournamentModal(a)}
+                      />
+                    )
                 }
                 <AddNewCard className="m-2" setShow={setShowNewTournamentModal} />
                 <DisplayModal
@@ -125,6 +182,22 @@ function Dashboard(props: AuthenticatedComponentProps) {
                     }}
                   />
                 </DisplayModal>
+                {showJoinTournamentModal === null
+                  ? null
+                  : <DisplayModal
+                    title="Join Tournament"
+                    show={showJoinTournamentModal !== null}
+                    onClose={() => setShowJoinTournamentModal(null)}
+                  >
+                    <CreateTournamentMembership apiKey={props.apiKey}
+                      tournamentData={showJoinTournamentModal}
+                      postSubmit={(tm) => {
+                        setShowJoinTournamentModal(null);
+                        setData(update(d, { tournamentMemberships: { $push: [tm] } }));
+                      }}
+                    />
+                  </DisplayModal>
+                }
               </div>}
             </Async.Fulfilled>
           </>}
