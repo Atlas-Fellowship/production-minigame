@@ -4,8 +4,11 @@ export type Tournament = {
   tournamentId: number,
   creationTime: number,
   creatorUserId: number,
-  incentiveStartYear: number,
   maxYears: number,
+  incentiveStartYear: number,
+  baselineDemand: number,
+  incentiveMultiplier: number,
+  costPerUnit: number,
 }
 
 export type TournamentData = {
@@ -23,7 +26,7 @@ export type TournamentYear = {
   creatorUserId: number,
   tournament: Tournament,
   currentYear: number,
-  incentive: number,
+  demand: number,
 }
 
 export type TournamentMembership = {
@@ -86,7 +89,10 @@ const undefToStr = (s: string | undefined) =>
 
 export type TournamentNewProps = {
   title: string,
+  baselineDemand: number,
+  incentiveMultiplier: number,
   incentiveStartYear: number,
+  costPerUnit: number,
   maxYears: number,
   apiKey: string,
 }

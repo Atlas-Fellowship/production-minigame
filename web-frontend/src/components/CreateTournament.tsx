@@ -48,11 +48,6 @@ function CreateTournament(props: CreateTournamentProps) {
       hasError = true;
     }
 
-    if(values.incentiveStartYear  >= values.maxYears) {
-      errors.maxYears= "The year the incentives starts must be less than the max year.";
-      hasError = true;
-    }
-
     fprops.setErrors(errors);
     if (hasError) {
       return;
@@ -60,6 +55,9 @@ function CreateTournament(props: CreateTournamentProps) {
 
     const maybeTournament = await tournamentNew({
       title: values.title,
+      costPerUnit: 1000,
+      baselineDemand: 2200,
+      incentiveMultiplier: 100,
       incentiveStartYear: values.incentiveStartYear,
       maxYears: values.maxYears,
       apiKey: props.apiKey.key,

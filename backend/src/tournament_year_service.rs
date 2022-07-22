@@ -11,7 +11,6 @@ impl From<tokio_postgres::row::Row> for TournamentYear {
             creator_user_id: row.get("creator_user_id"),
             tournament_id: row.get("tournament_id"),
             current_year: row.get("current_year"),
-            incentive: row.get("incentive"),
         }
     }
 }
@@ -21,7 +20,6 @@ pub async fn add(
     creator_user_id: i64,
     tournament_id: i64,
     current_year: i64,
-    incentive: i64,
 ) -> Result<TournamentYear, tokio_postgres::Error> {
     let row = con
         .query_one(
@@ -30,16 +28,14 @@ pub async fn add(
            creator_user_id,
            tournament_id,
            current_year,
-           incentive
        )
-       VALUES ($1, $2, $3, $4)
+       VALUES ($1, $2, $3)
        RETURNING tournament_year_id, creation_time
       ",
             &[
                 &creator_user_id,
                 &tournament_id,
                 &current_year,
-                &incentive,
             ],
         )
         .await?;
@@ -51,7 +47,6 @@ pub async fn add(
         creator_user_id,
         tournament_id,
         current_year,
-        incentive,
     })
 }
 

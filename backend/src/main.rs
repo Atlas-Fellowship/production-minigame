@@ -17,6 +17,7 @@ mod response;
 // db web stuff
 mod tournament_data_service;
 mod tournament_year_service;
+mod tournament_year_demand_service;
 mod tournament_service;
 mod tournament_submission_service;
 mod tournament_membership_service;

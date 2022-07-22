@@ -3,30 +3,32 @@ import { Table } from 'react-bootstrap';
 import update from 'immutability-helper';
 import { ApiKey } from '@innexgo/frontend-auth-api';
 import { Link, AddButton, DisplayModal } from '@innexgo/common-react-components';
-import { TournamentSubmission } from '../utils/api';
+import { TournamentSubmission, TournamentYear } from '../utils/api';
 import { ViewUser } from './ViewData';
 
 import { Eye as ViewIcon } from 'react-bootstrap-icons';
 
 type ManageTournamentSubmissionsTournamentProps = {
   tournamentSubmissions: TournamentSubmission[],
+  tournamentYears: TournamentYear[],
   apiKey: ApiKey,
 }
 
 function ManageTournamentSubmissionsTournament(props: ManageTournamentSubmissionsTournamentProps) {
   const submissions = props.tournamentSubmissions.map(x => x);
-  // sort by amount descending
-  submissions.sort((a, b) => b.amount - a.amount);
+  const years = props.tournamentYears.map(x => x);
+  // sort by year ascending
+  years.sort((a, b) => a.currentYear - b.currentYear);
 
-  const map = new Map<number, TournamentSubmission[]>();
-  for (const s of submissions) {
-    const v = map.get(s.year);
-    if (v) {
-      v.push(s);
-    } else {
-      map.set(s.year, [s]);
-    }
-  }
+
+  const data = years.map(y => {
+    const subs = submissions.filter(s => s.year === y.currentYear);
+    // sort by amount descending
+    subs.sort((a, b) => b.amount - a.amount);
+
+    return { y, subs }
+  });
+
 
   return <Table hover bordered>
     <thead>
@@ -38,13 +40,13 @@ function ManageTournamentSubmissionsTournament(props: ManageTournamentSubmission
       </tr>
     </thead>
     <tbody>
-      {submissions.length === 0
+      {data.length === 0
         ? <tr><td className="text-center" colSpan={4}>No Years</td></tr>
         : <> </>
       }
-      {Array.from(map, ([year, yearlySubmissions]) =>
-        <tr key={year}>
-          <td>Year {year + 1}</td>
+      {data.map(d =>
+        <tr key={d.y.currentYear}>
+          <td>Year {d.y.currentYear + 1}</td>
           <td>2200</td>
           <td>2200</td>
           <td>

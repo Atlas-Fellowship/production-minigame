@@ -11,7 +11,7 @@ import { unwrap, getFirstOr } from '@innexgo/frontend-common';
 import format from "date-fns/format";
 
 import { Async, AsyncProps } from 'react-async';
-import { TournamentData, tournamentDataView, TournamentSubmission, tournamentSubmissionView } from '../utils/api';
+import { TournamentData, tournamentDataView, TournamentSubmission, tournamentSubmissionView, TournamentYear, tournamentYearView } from '../utils/api';
 import { ApiKey } from '@innexgo/frontend-auth-api';
 import { AuthenticatedComponentProps } from '@innexgo/auth-react-components';
 import ManageTournamentSubmissionAdmin from '../components/ManageTournamentSubmissionAdmin';
@@ -19,6 +19,7 @@ import ManageTournamentSubmissionAdmin from '../components/ManageTournamentSubmi
 type ManageTournamentPageData = {
   tournamentData: TournamentData,
   tournamentSubmissions: TournamentSubmission[],
+  tournamentYears: TournamentYear[],
 }
 
 const loadManageTournamentPage = async (props: AsyncProps<ManageTournamentPageData>): Promise<ManageTournamentPageData> => {
@@ -42,9 +43,18 @@ const loadManageTournamentPage = async (props: AsyncProps<ManageTournamentPageDa
   })
     .then(unwrap);
 
+  const tournamentYears = await tournamentYearView({
+    tournamentId: [props.tournamentId],
+    apiKey: props.apiKey.key,
+    onlyRecent: false,
+  })
+    .then(unwrap);
+
+
 
   return {
     tournamentData,
+    tournamentYears,
     tournamentSubmissions,
   };
 }
@@ -71,6 +81,7 @@ function ManageTournamentPage(props: AuthenticatedComponentProps) {
               </Section>
               <Section name="Admin Overview" id="overview">
                 <ManageTournamentSubmissionAdmin
+                  tournamentYears={data.tournamentYears}
                   tournamentSubmissions={data.tournamentSubmissions}
                   apiKey={props.apiKey}
                 />

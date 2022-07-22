@@ -12,6 +12,9 @@ create table tournament(
   tournament_id bigserial primary key,
   creation_time bigint not null default extract(epoch from now()) * 1000,
   creator_user_id bigint not null,
+  cost_per_unit bigint not null,
+  baseline_demand bigint not null,
+  incentive_multiplier bigint not null,
   incentive_start_year bigint not null,
   max_years bigint not null
 );
@@ -45,9 +48,7 @@ create table tournament_year(
   creator_user_id bigint not null,
   tournament_id bigint not null references tournament(tournament_id),
   -- tournament year
-  current_year bigint not null,
-  -- signal being sent
-  incentive bigint not null
+  current_year bigint not null
 );
 
 create view recent_tournament_year as
@@ -59,7 +60,20 @@ create view recent_tournament_year as
   ) maxids
   on maxids.id = td.tournament_year_id;
 
-  
+
+drop table if exists tournament_year_demand cascade;
+create table tournament_year(
+  tournament_year_demand_id bigserial primary key,
+  creation_time bigint not null default extract(epoch from now()) * 1000,
+  -- id of tournament
+  tournament_id bigint not null references tournament(tournament_id),
+  -- which user this is for
+  user_id bigint not null,
+  -- tournament year
+  year bigint not null,
+  -- your personal demand per year (actual)
+  demand bigint not null
+);
 
 drop table if exists tournament_membership cascade;
 create table tournament_membership(
