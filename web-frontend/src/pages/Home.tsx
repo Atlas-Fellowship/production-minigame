@@ -71,8 +71,7 @@ function Home(props: BrandedComponentProps) {
           <div style={homeTextStyle}>
             <h1 style={gradText}>{props.branding.tagline}</h1>
             <h5 style={bodyText}>
-              Use Python to determine whether or not to defect in a repeated
-              prisoner's dilemma situation.
+              Choose the correct amount to produce!
             </h5>
             <Button style={buttonStyle} href="/dashboard">Get Started → </Button>
           </div>

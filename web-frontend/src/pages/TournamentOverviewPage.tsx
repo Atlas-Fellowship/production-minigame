@@ -11,7 +11,7 @@ import { unwrap, getFirstOr } from '@innexgo/frontend-common';
 import format from "date-fns/format";
 
 import { Async, AsyncProps } from 'react-async';
-import { TournamentData, tournamentDataView, TournamentSubmission, tournamentSubmissionView } from '../utils/api';
+import { TournamentData, tournamentDataView, TournamentSubmission, tournamentSubmissionView, TournamentYear, TournamentYearDemand, tournamentYearDemandView, tournamentYearView } from '../utils/api';
 import { ApiKey } from '@innexgo/frontend-auth-api';
 import { AuthenticatedComponentProps } from '@innexgo/auth-react-components';
 import ManageTournamentSubmissionOverview from '../components/ManageTournamentSubmissionOverview';
@@ -19,6 +19,8 @@ import ManageTournamentSubmissionOverview from '../components/ManageTournamentSu
 type ManageTournamentPageData = {
   tournamentData: TournamentData,
   tournamentSubmissions: TournamentSubmission[],
+  tournamentYears: TournamentYear[],
+  tournamentYearDemands: TournamentYearDemand[],
 }
 
 const loadManageTournamentPage = async (props: AsyncProps<ManageTournamentPageData>): Promise<ManageTournamentPageData> => {
@@ -37,8 +39,23 @@ const loadManageTournamentPage = async (props: AsyncProps<ManageTournamentPageDa
   })
     .then(unwrap);
 
+  const tournamentYears = await tournamentYearView({
+    tournamentId: [props.tournamentId],
+    apiKey: props.apiKey.key,
+    onlyRecent: false,
+  })
+    .then(unwrap);
+
+  const tournamentYearDemands = await tournamentYearDemandView({
+    tournamentId: [props.tournamentId],
+    apiKey: props.apiKey.key,
+  })
+    .then(unwrap);
+
   return {
     tournamentData,
+    tournamentYears,
+    tournamentYearDemands,
     tournamentSubmissions,
   };
 }
@@ -67,16 +84,16 @@ function ManageTournamentPage(props: AuthenticatedComponentProps) {
                 <ManageTournamentSubmissionOverview
                   tournamentSubmissions={data.tournamentSubmissions}
                   apiKey={props.apiKey}
-                  showInactive={false}
-                  mutable={true}
+                  tournamentData={data.tournamentData}
+                  tournamentYears={data.tournamentYears}
+                  tournamentYearDemands={data.tournamentYearDemands}
+                  ={false}
+                  adminView={false}
                 />
               </Section>
               <div className="text-center">
-                <a className="btn btn-primary mx-3" href={`/compete?tournamentId=${tournamentId}&kind=VALIDATE`}>
+                <a className="btn btn-primary mx-3" href={`/tournament_compete?tournamentId=${tournamentId}`}>
                   Compete!
-                </a>
-                <a className="btn btn-primary mx-3" href={`/compete?tournamentId=${tournamentId}&kind=TESTCASE`} hidden={props.apiKey.creatorUserId !== data.tournamentData.tournament.creatorUserId}>
-                  Write a Testcase!
                 </a>
               </div>
             </>}

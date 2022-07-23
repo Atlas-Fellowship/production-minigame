@@ -102,7 +102,7 @@ pub struct TournamentYearDemandViewProps {
   pub tournament_year_demand_id: Option<Vec<i64>>,
   pub min_creation_time: Option<i64>,
   pub max_creation_time: Option<i64>,
-  pub creator_user_id: Option<Vec<i64>>,
+  pub user_id: Option<Vec<i64>>,
   pub tournament_id: Option<Vec<i64>>,
   pub api_key: String,
 }

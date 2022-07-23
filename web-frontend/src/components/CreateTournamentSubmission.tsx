@@ -30,7 +30,7 @@ function CreateTournamentSubmission(props: CreateTournamentSubmissionProps) {
     // Validate input
     let hasError = false;
 
-    if (isNaN(values.amount)) {
+    if (typeof values.amount === "string" || isNaN(values.amount)) {
       errors.amount = "Please enter the amount you wish to produce.";
       hasError = true;
     }

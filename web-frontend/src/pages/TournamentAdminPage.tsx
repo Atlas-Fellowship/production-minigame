@@ -11,15 +11,16 @@ import { unwrap, getFirstOr } from '@innexgo/frontend-common';
 import format from "date-fns/format";
 
 import { Async, AsyncProps } from 'react-async';
-import { TournamentData, tournamentDataView, TournamentSubmission, tournamentSubmissionView, TournamentYear, tournamentYearView } from '../utils/api';
+import { TournamentData, tournamentDataView, TournamentSubmission, tournamentSubmissionView, TournamentYear, TournamentYearDemand, tournamentYearDemandView, tournamentYearView } from '../utils/api';
 import { ApiKey } from '@innexgo/frontend-auth-api';
 import { AuthenticatedComponentProps } from '@innexgo/auth-react-components';
-import ManageTournamentSubmissionAdmin from '../components/ManageTournamentSubmissionAdmin';
+import ManageTournamentSubmissionOverview from '../components/ManageTournamentSubmissionOverview';
 
 type ManageTournamentPageData = {
   tournamentData: TournamentData,
   tournamentSubmissions: TournamentSubmission[],
   tournamentYears: TournamentYear[],
+  tournamentYearDemands: TournamentYearDemand[],
 }
 
 const loadManageTournamentPage = async (props: AsyncProps<ManageTournamentPageData>): Promise<ManageTournamentPageData> => {
@@ -50,11 +51,16 @@ const loadManageTournamentPage = async (props: AsyncProps<ManageTournamentPageDa
   })
     .then(unwrap);
 
-
+  const tournamentYearDemands = await tournamentYearDemandView({
+    tournamentId: [props.tournamentId],
+    apiKey: props.apiKey.key,
+  })
+    .then(unwrap);
 
   return {
     tournamentData,
     tournamentYears,
+    tournamentYearDemands,
     tournamentSubmissions,
   };
 }
@@ -80,9 +86,12 @@ function ManageTournamentPage(props: AuthenticatedComponentProps) {
                 </div>
               </Section>
               <Section name="Admin Overview" id="overview">
-                <ManageTournamentSubmissionAdmin
+                <ManageTournamentSubmissionOverview
+                  tournamentData={data.tournamentData}
                   tournamentYears={data.tournamentYears}
+                  tournamentYearDemands={data.tournamentYearDemands}
                   tournamentSubmissions={data.tournamentSubmissions}
+                  adminView={true}
                   apiKey={props.apiKey}
                 />
               </Section>

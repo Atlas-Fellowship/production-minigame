@@ -24,14 +24,14 @@ pub async fn add(
     let row = con
         .query_one(
             "INSERT INTO
-       tournament_year(
-           creator_user_id,
-           tournament_id,
-           current_year,
-       )
-       VALUES ($1, $2, $3)
-       RETURNING tournament_year_id, creation_time
-      ",
+             tournament_year(
+                 creator_user_id,
+                 tournament_id,
+                 current_year
+             )
+             VALUES ($1, $2, $3)
+             RETURNING tournament_year_id, creation_time
+            ",
             &[
                 &creator_user_id,
                 &tournament_id,
@@ -56,9 +56,9 @@ pub async fn get_recent_by_tournament_id(
 ) -> Result<Option<TournamentYear>, tokio_postgres::Error> {
     let sql = [
         "SELECT td.* FROM recent_tournament_year td",
-        " WHERE 1 = 1",
-        " AND td.tournament_id = $1",
-        " ORDER BY td.tournament_year_id",
+        "WHERE 1 = 1",
+        "AND td.tournament_id = $1",
+        "ORDER BY td.tournament_year_id",
     ]
     .join("\n");
 
@@ -82,13 +82,13 @@ pub async fn query(
         } else {
             "SELECT td.* FROM tournament_year td"
         },
-        " WHERE 1 = 1",
-        " AND ($1::bigint[]  IS NULL OR td.tournament_year_id = ANY($1))",
-        " AND ($2::bigint    IS NULL OR td.creation_time >= $2)",
-        " AND ($3::bigint    IS NULL OR td.creation_time <= $3)",
-        " AND ($4::bigint[]  IS NULL OR td.creator_user_id = ANY($4))",
-        " AND ($5::bigint[]  IS NULL OR td.tournament_id = ANY($5))",
-        " ORDER BY td.tournament_year_id",
+        "WHERE 1 = 1",
+        "AND ($1::bigint[]  IS NULL OR td.tournament_year_id = ANY($1))",
+        "AND ($2::bigint    IS NULL OR td.creation_time >= $2)",
+        "AND ($3::bigint    IS NULL OR td.creation_time <= $3)",
+        "AND ($4::bigint[]  IS NULL OR td.creator_user_id = ANY($4))",
+        "AND ($5::bigint[]  IS NULL OR td.tournament_id = ANY($5))",
+        "ORDER BY td.tournament_year_id",
     ]
     .join("\n");
 

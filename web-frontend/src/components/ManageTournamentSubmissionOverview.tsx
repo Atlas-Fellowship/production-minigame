@@ -3,78 +3,127 @@ import { Table } from 'react-bootstrap';
 import update from 'immutability-helper';
 import { ApiKey } from '@innexgo/frontend-auth-api';
 import { Link, AddButton, DisplayModal } from '@innexgo/common-react-components';
-import { TournamentSubmission } from '../utils/api';
+import { TournamentData, TournamentSubmission, TournamentYear, TournamentYearDemand } from '../utils/api';
 import { ViewUser } from './ViewData';
 
 import { Eye as ViewIcon } from 'react-bootstrap-icons';
+import { sum } from '../utils/utils';
 
-type ManageTournamentSubmissionsTournamentProps = {
+type ManageTournamentSubmissionsOverviewProps = {
+  tournamentData: TournamentData,
   tournamentSubmissions: TournamentSubmission[],
-  showInactive: boolean,
-  mutable: boolean,
+  tournamentYears: TournamentYear[],
+  tournamentYearDemands: TournamentYearDemand[],
+  adminView: boolean,
+  onlyShowYou: boolean,
   apiKey: ApiKey,
 }
 
-function ManageTournamentSubmissionsTournament(props: ManageTournamentSubmissionsTournamentProps) {
-  const submissions = props.tournamentSubmissions.map(x => x);
-  // sort by amount descending
-  submissions.sort((a, b) => b.amount - a.amount);
-
-  const map = new Map<number, TournamentSubmission[]>();
-  for (const s of submissions) {
-    const v = map.get(s.year);
-    if (v) {
-      v.push(s);
+// only get the latest tournament submission per year per user
+function getRecentSubmissions(tss: TournamentSubmission[]) {
+  const map = new Map<string, TournamentSubmission[]>();
+  for (const ts of tss) {
+    const id = JSON.stringify([ts.creatorUserId, ts.year]);
+    const result = map.get(id);
+    if (result === undefined) {
+      map.set(id, [ts]);
     } else {
-      map.set(s.year, [s]);
+      result.push(ts);
     }
   }
+
+  const results: TournamentSubmission[] = []
+
+  // select one with max id
+  for (const [, value] of map) {
+    let maxIdTS: null | TournamentSubmission = null;
+    for (const ts of value) {
+      if (maxIdTS === null || ts.tournamentSubmissionId > maxIdTS.tournamentSubmissionId) {
+        maxIdTS = ts;
+      }
+    }
+    if (maxIdTS) {
+      results.push(maxIdTS);
+    }
+  }
+
+  return results;
+}
+
+function ManageTournamentSubmissionsOverview(props: ManageTournamentSubmissionsOverviewProps) {
+  const submissions = getRecentSubmissions(props.tournamentSubmissions);
+  const years = props.tournamentYears.map(x => x);
+  const demands = props.tournamentYearDemands.map(x => x);
+
+  // sort by year ascending
+  years.sort((a, b) => a.currentYear - b.currentYear);
+
+
+  const data = years.map(y => {
+    const subs = submissions.filter(s => s.year === y.currentYear);
+    // sort by amount descending
+    subs.sort((a, b) => b.amount - a.amount);
+
+    const yearDemands = demands.filter(yd => yd.year === y.currentYear);
+
+    const totalDemand = sum(yearDemands.map(yd => yd.demand));
+    const totalProduction = sum(subs.map(s => s.amount));
+
+    const profitPerUnit = (totalDemand - totalProduction) - props.tournamentData.tournament.costPerUnit;
+
+    return { y, subs, totalDemand, totalProduction, profitPerUnit }
+  });
+
 
   return <Table hover bordered>
     <thead>
       <tr>
         <th>Year</th>
         <th>Total Demand</th>
-        <th>Profit per Megabarrel</th>
+        <th>Profit Per Unit</th>
         <th>Production</th>
       </tr>
     </thead>
     <tbody>
-      {submissions.length === 0
+      {data.length === 0
         ? <tr><td className="text-center" colSpan={4}>No Years</td></tr>
         : <> </>
       }
-      {Array.from(map, ([year, yearlySubmissions]) =>
-        <tr key={year}>
-          <td>Year {year + 1}</td>
-          <td>2200</td>
-          <td>2200</td>
+      {data.map(d =>
+        <tr key={d.y.currentYear}>
+          <td>Year {d.y.currentYear + 1}</td>
+          <td>{d.totalDemand}</td>
+          <td>{d.profitPerUnit}</td>
           <td>
             <Table hover bordered>
               <thead>
                 <tr>
                   <th>Rank</th>
+                  <th>Player</th>
                   <th>Amount</th>
                 </tr>
               </thead>
-              <tbody>
-                {yearlySubmissions.length === 0
-                  ? <tr><td className="text-center" colSpan={2}>No Submissions</td></tr>
-                  : <> </>
-                }
-                {yearlySubmissions.map((s, i) =>
-                  <tr
-                    style={{
-                      backgroundColor: s.creatorUserId === props.apiKey.creatorUserId
-                        ? "#FFFF00"
-                        : undefined
-                    }}
-                  >
-                    <td>{i + i}</td>
-                    <td>{s.amount}</td>
+              <tbody>{d.subs.length === 0
+                ? <tr><td className="text-center" colSpan={4}>No Submissions</td></tr>
+                : <> </>
+              }
+                {d.subs.map((s, i) =>
+                  <tr key={i} >
+                    <td>{i + 1}</td>
+                    <td>{
+                      props.adminView
+                        ? <ViewUser userId={s.creatorUserId} apiKey={props.apiKey} expanded={false} />
+                        : s.creatorUserId === props.apiKey.creatorUserId
+                          ? <b>You</b>
+                          : <b> (hidden) </b>
+                    }</td>
+                    <td>{
+                      s.autogenerated
+                        ? `${s.amount} (auto)`
+                        : s.amount
+                    }</td>
                   </tr>
-                )}
-              </tbody>
+                )}</tbody>
             </Table>
           </td>
         </tr>
@@ -83,4 +132,4 @@ function ManageTournamentSubmissionsTournament(props: ManageTournamentSubmission
   </Table>
 }
 
-export default ManageTournamentSubmissionsTournament;
+export default ManageTournamentSubmissionsOverview;

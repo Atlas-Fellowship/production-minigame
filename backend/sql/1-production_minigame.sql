@@ -62,13 +62,13 @@ create view recent_tournament_year as
 
 
 drop table if exists tournament_year_demand cascade;
-create table tournament_year(
+create table tournament_year_demand(
   tournament_year_demand_id bigserial primary key,
   creation_time bigint not null default extract(epoch from now()) * 1000,
-  -- id of tournament
-  tournament_id bigint not null references tournament(tournament_id),
   -- which user this is for
   user_id bigint not null,
+  -- id of tournament
+  tournament_id bigint not null references tournament(tournament_id),
   -- tournament year
   year bigint not null,
   -- your personal demand per year (actual)

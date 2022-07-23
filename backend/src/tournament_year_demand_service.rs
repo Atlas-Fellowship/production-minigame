@@ -18,24 +18,24 @@ impl From<tokio_postgres::row::Row> for TournamentYearDemand {
 
 pub async fn add(
     con: &mut impl GenericClient,
-    tournament_id: i64,
     user_id: i64,
+    tournament_id: i64,
     year: i64,
     demand: i64,
 ) -> Result<TournamentYearDemand, tokio_postgres::Error> {
     let row = con
         .query_one(
             "INSERT INTO
-             tournament_year_demand_demand(
-                 tournament_id,
+             tournament_year_demand(
                  user_id,
+                 tournament_id,
                  year,
                  demand
              )
              VALUES ($1, $2, $3, $4)
              RETURNING tournament_year_demand_id, creation_time
             ",
-            &[&tournament_id, &user_id, &year, &demand],
+            &[&user_id, &tournament_id, &year, &demand],
         )
         .await?;
 
@@ -84,7 +84,7 @@ pub async fn query(
         " AND ($1::bigint[]  IS NULL OR td.tournament_year_demand_id = ANY($1))",
         " AND ($2::bigint    IS NULL OR td.creation_time >= $2)",
         " AND ($3::bigint    IS NULL OR td.creation_time <= $3)",
-        " AND ($4::bigint[]  IS NULL OR td.creator_user_id = ANY($4))",
+        " AND ($4::bigint[]  IS NULL OR td.user_id = ANY($4))",
         " AND ($5::bigint[]  IS NULL OR td.tournament_id = ANY($5))",
         " ORDER BY td.tournament_year_demand_id",
     ]
@@ -99,7 +99,7 @@ pub async fn query(
                 &props.tournament_year_demand_id,
                 &props.min_creation_time,
                 &props.max_creation_time,
-                &props.creator_user_id,
+                &props.user_id,
                 &props.tournament_id,
             ],
         )

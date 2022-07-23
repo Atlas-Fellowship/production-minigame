@@ -399,8 +399,8 @@ pub async fn tournament_year_new(
 
         tournament_year_demand_service::add(
             &mut sp,
-            tournament.tournament_id,
             membership.creator_user_id,
+            tournament.tournament_id,
             tournament_year.current_year,
             demand,
         )
@@ -481,8 +481,8 @@ pub async fn tournament_membership_new(
     // create demand for this year
     tournament_year_demand_service::add(
         &mut sp,
-        tournament.tournament_id,
         user.user_id,
+        tournament.tournament_id,
         0,
         demand,
     )

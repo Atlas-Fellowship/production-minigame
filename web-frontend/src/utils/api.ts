@@ -213,7 +213,7 @@ export type TournamentYearDemandViewProps = {
   tournamentYearDemandId?: number[],
   minCreationTime?: number,
   maxCreationTime?: number,
-  creatorUserId?: number[],
+  userId?: number[],
   tournamentId?: number[],
   apiKey: string,
 }
