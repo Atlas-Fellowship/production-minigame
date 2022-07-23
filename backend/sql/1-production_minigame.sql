@@ -13,7 +13,8 @@ create table tournament(
   creation_time bigint not null default extract(epoch from now()) * 1000,
   creator_user_id bigint not null,
   cost_per_unit bigint not null,
-  baseline_demand bigint not null,
+  demand_xintercept bigint not null,
+  demand_yintercept bigint not null,
   incentive_multiplier bigint not null,
   incentive_start_year bigint not null,
   max_years bigint not null

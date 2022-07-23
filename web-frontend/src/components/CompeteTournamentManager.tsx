@@ -35,7 +35,7 @@ function CompeteTournamentManager(props: CompeteTournamentManagerProps) {
       <Card.Title>Year {demand.year + 1}</Card.Title>
       <Card.Text>
         You've calculated that the total demand for the
-        product in the system is <b>{props.tournamentData.tournament.baselineDemand}</b>.
+        product in the system is <b>{props.tournamentData.tournament.demandYintercept}</b>.
       </Card.Text>
       <Card.Text>
         If everyone sells too much, then the price per barrel will decline.

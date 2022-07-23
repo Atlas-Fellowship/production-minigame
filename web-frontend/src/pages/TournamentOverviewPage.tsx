@@ -87,7 +87,7 @@ function ManageTournamentPage(props: AuthenticatedComponentProps) {
                   tournamentData={data.tournamentData}
                   tournamentYears={data.tournamentYears}
                   tournamentYearDemands={data.tournamentYearDemands}
-                  ={false}
+                  onlyShowYou={false}
                   adminView={false}
                 />
               </Section>

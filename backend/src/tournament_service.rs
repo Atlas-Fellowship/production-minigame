@@ -9,7 +9,8 @@ impl From<tokio_postgres::row::Row> for Tournament {
             creation_time: row.get("creation_time"),
             creator_user_id: row.get("creator_user_id"),
             cost_per_unit: row.get("cost_per_unit"),
-            baseline_demand: row.get("baseline_demand"),
+            demand_xintercept: row.get("demand_xintercept"),
+            demand_yintercept: row.get("demand_yintercept"),
             incentive_multiplier: row.get("incentive_multiplier"),
             incentive_start_year: row.get("incentive_start_year"),
             max_years: row.get("max_years"),
@@ -21,7 +22,8 @@ pub async fn add(
     con: &mut impl GenericClient,
     creator_user_id: i64,
     cost_per_unit: i64,
-    baseline_demand: i64,
+    demand_xintercept: i64,
+    demand_yintercept: i64,
     incentive_multiplier: i64,
     incentive_start_year: i64,
     max_years: i64,
@@ -32,18 +34,20 @@ pub async fn add(
              tournament(
                creator_user_id,
                cost_per_unit,
-               baseline_demand,
+               demand_xintercept,
+               demand_yintercept,
                incentive_multiplier,
                incentive_start_year,
                max_years
              )
-             VALUES($1, $2, $3, $4, $5, $6)
+             VALUES($1, $2, $3, $4, $5, $6, $7)
              RETURNING tournament_id, creation_time
             ",
             &[
                 &creator_user_id,
                 &cost_per_unit,
-                &baseline_demand,
+                &demand_xintercept,
+                &demand_yintercept,
                 &incentive_multiplier,
                 &incentive_start_year,
                 &max_years,
@@ -57,7 +61,8 @@ pub async fn add(
         creation_time: row.get(1),
         creator_user_id,
         cost_per_unit,
-        baseline_demand,
+        demand_xintercept,
+        demand_yintercept,
         incentive_multiplier,
         incentive_start_year,
         max_years,

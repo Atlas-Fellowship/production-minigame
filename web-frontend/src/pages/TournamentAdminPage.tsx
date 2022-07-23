@@ -92,6 +92,7 @@ function ManageTournamentPage(props: AuthenticatedComponentProps) {
                   tournamentYearDemands={data.tournamentYearDemands}
                   tournamentSubmissions={data.tournamentSubmissions}
                   adminView={true}
+                  onlyShowYou={false}
                   apiKey={props.apiKey}
                 />
               </Section>

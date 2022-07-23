@@ -64,7 +64,8 @@ async fn fill_tournament(
         creation_time: tournament.creation_time,
         creator_user_id: tournament.creator_user_id,
         cost_per_unit: tournament.cost_per_unit,
-        baseline_demand: tournament.baseline_demand,
+        demand_xintercept: tournament.demand_xintercept,
+        demand_yintercept: tournament.demand_yintercept,
         incentive_multiplier: tournament.incentive_multiplier,
         incentive_start_year: tournament.incentive_start_year,
         max_years: tournament.max_years,
@@ -218,7 +219,8 @@ pub async fn tournament_new(
         &mut sp,
         user.user_id,
         props.cost_per_unit,
-        props.baseline_demand,
+        props.demand_xintercept,
+        props.demand_yintercept,
         props.incentive_multiplier,
         props.incentive_start_year,
         props.max_years,
@@ -395,14 +397,13 @@ pub async fn tournament_year_new(
         } else {
             0
         };
-        let demand = tournament.baseline_demand + incentive;
 
         tournament_year_demand_service::add(
             &mut sp,
             membership.creator_user_id,
             tournament.tournament_id,
             tournament_year.current_year,
-            demand,
+            incentive,
         )
         .await
         .map_err(report_postgres_err)?;
@@ -476,7 +477,6 @@ pub async fn tournament_membership_new(
     } else {
         0
     };
-    let demand = tournament.baseline_demand + incentive;
 
     // create demand for this year
     tournament_year_demand_service::add(
@@ -484,7 +484,7 @@ pub async fn tournament_membership_new(
         user.user_id,
         tournament.tournament_id,
         0,
-        demand,
+        incentive,
     )
     .await
     .map_err(report_postgres_err)?;

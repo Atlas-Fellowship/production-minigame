@@ -56,7 +56,8 @@ function CreateTournament(props: CreateTournamentProps) {
     const maybeTournament = await tournamentNew({
       title: values.title,
       costPerUnit: 1000,
-      baselineDemand: 2200,
+      demandXintercept: 2200,
+      demandYintercept: 2200,
       incentiveMultiplier: 100,
       incentiveStartYear: values.incentiveStartYear,
       maxYears: values.maxYears,
