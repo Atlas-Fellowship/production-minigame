@@ -11,16 +11,18 @@ import { unwrap, getFirstOr } from '@innexgo/frontend-common';
 import format from "date-fns/format";
 
 import { Async, AsyncProps } from 'react-async';
-import { TournamentData, tournamentDataView, TournamentSubmission, tournamentSubmissionView, TournamentYear, TournamentYearDemand, tournamentYearDemandView, tournamentYearView } from '../utils/api';
+import { TournamentData, tournamentDataView, TournamentMembership, tournamentMembershipView, TournamentSubmission, tournamentSubmissionView, TournamentYear, TournamentYearDemand, tournamentYearDemandView, tournamentYearView } from '../utils/api';
 import { ApiKey } from '@innexgo/frontend-auth-api';
 import { AuthenticatedComponentProps } from '@innexgo/auth-react-components';
 import ManageTournamentSubmissionOverview from '../components/ManageTournamentSubmissionOverview';
+import CompeteTournamentManager from '../components/CompeteTournamentManager';
 
 type ManageTournamentPageData = {
   tournamentData: TournamentData,
   tournamentSubmissions: TournamentSubmission[],
   tournamentYears: TournamentYear[],
   tournamentYearDemands: TournamentYearDemand[],
+  myMembership?: TournamentMembership;
 }
 
 const loadManageTournamentPage = async (props: AsyncProps<ManageTournamentPageData>): Promise<ManageTournamentPageData> => {
@@ -52,11 +54,21 @@ const loadManageTournamentPage = async (props: AsyncProps<ManageTournamentPageDa
   })
     .then(unwrap);
 
+  const myMembership: TournamentMembership | undefined = await tournamentMembershipView({
+    tournamentId: [props.tournamentId],
+    creatorUserId: [props.apiKey.creatorUserId],
+    apiKey: props.apiKey.key,
+    onlyRecent: true,
+  })
+    .then(unwrap)
+    .then(x => x[0]);
+
   return {
     tournamentData,
     tournamentYears,
     tournamentYearDemands,
     tournamentSubmissions,
+    myMembership
   };
 }
 
@@ -87,21 +99,26 @@ function ManageTournamentPage(props: AuthenticatedComponentProps) {
                   tournamentData={data.tournamentData}
                   tournamentYears={data.tournamentYears}
                   tournamentYearDemands={data.tournamentYearDemands}
-                  onlyShowYou={false}
                   adminView={false}
                 />
               </Section>
-              <div className="text-center">
-                <a className="btn btn-primary mx-3" href={`/tournament_compete?tournamentId=${tournamentId}`}>
-                  Compete!
-                </a>
-              </div>
+              {data.myMembership !== undefined && data.myMembership.active
+                ? <Section name="Compete" id="compete">
+                  <CompeteTournamentManager
+                    tournamentData={data.tournamentData}
+                    tournamentYearDemands={data.tournamentYearDemands}
+                    postCreate={ts => setData(update(data, { tournamentSubmissions: { $push: [ts] } }))}
+                    apiKey={props.apiKey}
+                  />
+                </Section>
+                : null
+              }
             </>}
             </Async.Fulfilled>
           </>}
         </Async>
       </Container>
-    </DashboardLayout>
+    </DashboardLayout >
   )
 }
 

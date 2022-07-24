@@ -16,7 +16,6 @@ type ManageTournamentSubmissionsOverviewProps = {
   tournamentYears: TournamentYear[],
   tournamentYearDemands: TournamentYearDemand[],
   adminView: boolean,
-  onlyShowYou: boolean,
   apiKey: ApiKey,
 }
 
